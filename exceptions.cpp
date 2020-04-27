@@ -1,5 +1,5 @@
 //
-// Created by vhund on 27.04.2020.
+// Created by vhundef on 27.04.2020.
 //
 #include <stdexcept>
 
@@ -21,7 +21,7 @@ public:
     }
     explicit NotImplementedException(const char* message): NotImplementedException(message, __FUNCTION__){}
 
-    virtual const char *what() const throw()
+    virtual const char *what() const noexcept
     {
         return _text.c_str();
     }

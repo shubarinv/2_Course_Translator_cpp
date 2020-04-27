@@ -2,6 +2,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include "exceptions.cpp"
+#include "Lexer.h"
+#include "Parser.h"
+
 using namespace boost;
 int main() {
     std::string filename;
@@ -16,10 +19,11 @@ int main() {
         std::cout << "Try again: \nFilename: ";
         std::cin>>filename;
     }
+    Lexer lexer;
+    Parser parser;
     std::ifstream file (filename);
     if (file.is_open()){
         throw NotImplementedException();
-        file.close();
         //lexer.QueueLine();
     }
     return 0;
