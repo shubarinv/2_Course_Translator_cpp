@@ -19,7 +19,7 @@ message(STATUS "Boost_VERSION: ${Boost_VERSION}")
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(spo_Compiler main.cpp exceptions.cpp)
+add_executable(spo_Compiler main.cpp exceptions.cpp Lexer.h Parser.h)
 
 if (Boost_FOUND)
     target_link_libraries(spo_Compiler ${Boost_LIBRARIES})
