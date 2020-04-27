@@ -6,9 +6,9 @@ int main() {
     std::string filename;
     std::cin>>filename;
 
-    std::string requiredFileExtention=".exe";
-    while(!filesystem::exists(filename)||!boost::algorithm::ends_with(filename,requiredFileExtention)){
-        if(!boost::algorithm::ends_with(filename,requiredFileExtention))
+    std::string requiredFileExtension=".exe";
+    while(!filesystem::exists(filename)||!boost::algorithm::ends_with(filename,requiredFileExtension)){
+        if(!boost::algorithm::ends_with(filename,requiredFileExtension))
             std::cout<<"Unexpected file extension"<<std::endl;
         else
             std::cout << "No such file"<<std::endl;
