@@ -49,3 +49,11 @@ TEST(token, idOpTokenTypeTranslation) {
     Token token("i");
     EXPECT_EQ(Token::typeToString(token.getType()), "Id");
 }
+TEST(token, numberOpTokenTypeTranslation) {
+    Token token("2");
+    EXPECT_EQ(Token::typeToString(token.getType()), "Num");
+}
+TEST(token, realOpTokenTypeTranslation) {
+    Token token("5.5");
+    EXPECT_EQ(Token::typeToString(token.getType()), "Num");
+}
