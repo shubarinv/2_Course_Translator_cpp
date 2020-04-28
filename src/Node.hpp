@@ -1,5 +1,5 @@
 //
-// Created by vhund on 28.04.2020.
+// Created by vhundef on 28.04.2020.
 //
 
 #ifndef SPO_COMPILER_NODE_HPP
