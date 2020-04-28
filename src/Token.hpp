@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <algorithm>
+#include <iostream>
 
 
 class Token {
@@ -39,6 +40,7 @@ private:
         return !s.empty() &&
                std::find_if(s.begin(), s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
     }
+
 public:
     static tokenType determineTokenType(const std::string &str) {
         using namespace std;
@@ -69,10 +71,9 @@ public:
         else if (str == "int") return tokenType::DataType;
 
         else if (str == " ") {
-            std::cout << "tokenValue is somehow whitespace"<<endl;
+            std::cout << "tokenValue is somehow whitespace" << endl;
             return tokenType::Undefined;
-        }
-        else
+        } else
             return tokenType::Id;
     }
 
@@ -80,43 +81,33 @@ public:
 
     explicit Token(std::string _val) {
         text = std::move(_val);
-        std::cout<<"Token of value: "<<text<<" has type: "<<typeToString(determineTokenType(text))<<std::endl;
+        std::cout << "Token of value: " << text << " has type: " << typeToString(determineTokenType(text)) << std::endl;
     }
-    static std::string typeToString(tokenType _type){
-        switch(_type){
-            case(tokenType::Assignment):
+
+    static std::string typeToString(tokenType _type) {
+        switch (_type) {
+            case (tokenType::Assignment):
                 return "Assignment";
-                break;
-            case(tokenType::Comparison):
+            case (tokenType::Comparison):
                 return "Comparison";
-                break;
             case tokenType::Keyword:
                 return "Keyword";
-                break;
             case tokenType::MathOp:
                 return "MathOp";
-                break;
             case tokenType::Bracket:
                 return "Bracket";
-                break;
             case tokenType::Logic:
                 return "Logic";
-                break;
             case tokenType::Semicolon:
                 return "Semicolon";
-                break;
             case tokenType::DataType:
                 return "DataType";
-                break;
             case tokenType::Id:
                 return "Id";
-                break;
             case tokenType::Num:
                 return "Num";
-                break;
             case tokenType::Undefined:
                 return "Undefined";
-                break;
         }
     }
 };
