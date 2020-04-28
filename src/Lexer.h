@@ -16,10 +16,23 @@
 
 class Lexer {
 private:
-    std::list<Token> tokens;
+    std::vector<Token> tokens;
     std::string program;
+    int currentTokenIndex = 0;
+    Token *currentToken{};
 public:
-    [[nodiscard]] const std::list<Token> &getTokens() const {
+    void nextToken() {
+        if (currentTokenIndex < tokens.size() - 1) {
+            currentToken = &tokens[currentTokenIndex];
+            currentTokenIndex++;
+        }
+    }
+
+    [[nodiscard]] Token *getCurrentToken() const {
+        return currentToken;
+    }
+
+    [[nodiscard]] std::vector<Token> getTokens() const {
         return tokens;
     }
 
@@ -37,18 +50,16 @@ private:
     static std::vector<std::string> splitString(std::string *str) {
         std::vector<std::string> tokens;
         std::string strToTokenize = *str;
-        strToTokenize=singleSpace(strToTokenize);
-        for (int i = 0; i < strToTokenize.length(); i++)
-        {
-            if (strToTokenize[i] == ';')
-            {
+        strToTokenize = singleSpace(strToTokenize);
+        for (int i = 0; i < strToTokenize.length(); i++) {
+            if (strToTokenize[i] == ';') {
                 strToTokenize.insert(i++, " ");
             }
         }
         boost::split(tokens, strToTokenize, boost::is_any_of("\t,\n, "));
-        int i=0;
-        for(auto &token:tokens){
-            if(token.empty())
+        int i = 0;
+        for (auto &token:tokens) {
+            if (token.empty())
                 tokens.erase(tokens.begin() + i);
             i++;
         }
@@ -56,12 +67,12 @@ private:
     }
 
 public:
-    explicit Lexer(std::string _program){
-        program=std::move(_program);
+    explicit Lexer(std::string _program) {
+        program = std::move(_program);
     }
 
     void tokenize() {
-        for(auto &token : splitString(&program)){
+        for (auto &token : splitString(&program)) {
             tokens.emplace_back(token);
         }
     }
