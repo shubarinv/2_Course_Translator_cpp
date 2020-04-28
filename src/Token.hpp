@@ -81,7 +81,8 @@ public:
 
     explicit Token(std::string _val) {
         text = std::move(_val);
-        std::cout << "Token of value: " << text << " has type: " << typeToString(determineTokenType(text)) << std::endl;
+        type= determineTokenType(text);
+        std::cout << "Token of value: " << text << " has type: " << typeToString(type) << std::endl;
     }
 
     static std::string typeToString(tokenType _type) {
