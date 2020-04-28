@@ -10,12 +10,32 @@
 
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 class lexer {
 private:
+    static std::string singleSpace(std::string const &input) {
+        std::istringstream buffer(input);
+        std::ostringstream result;
+
+        std::copy(std::istream_iterator<std::string>(buffer),
+                  std::istream_iterator<std::string>(),
+                  std::ostream_iterator<std::string>(result, " "));
+        return result.str();
+    }
+
     static std::vector<std::string> tokenizeString(std::string *str) {
         std::vector<std::string> tokens;
-        boost::split(tokens, *str, boost::is_any_of("\t,\n, "));
+        std::string strToTokenize = *str;
+        strToTokenize=singleSpace(strToTokenize);
+
+        boost::split(tokens, strToTokenize, boost::is_any_of("\t,\n, "));
+        int i=0;
+        for(auto &token:tokens){
+            if(token.empty())
+                tokens.erase(tokens.begin() + i);
+            i++;
+        }
         return tokens;
     }
 
