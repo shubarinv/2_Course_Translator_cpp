@@ -7,10 +7,10 @@
 
 
 class Parser {
-    public:
-        Parser(){
-            throw NotImplementedException();
-        }
+public:
+    Parser(){
+        throw NotImplementedException();
+    }
 };
 
 
