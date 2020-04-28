@@ -1,8 +1,9 @@
 #include "exceptions.cpp"
-#include "lexer.h"
+#include "Lexer.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <iostream>
+
 
 using namespace boost;
 
@@ -20,12 +21,12 @@ int main() {
         std::cin >> filename;
     }
 
-    lexer lexer;
-    // Читает файл и отправляет его в lexer для обработки и токенизации
+    Lexer lexer;
+    // Читает файл и отправляет его в Lexer для обработки и токенизации
     std::ifstream file(filename);
     if (file.is_open()) {
         throw NotImplementedException();
-        // lexer.QueueLine();
+        // Lexer.QueueLine();
     }
 
     return 0;

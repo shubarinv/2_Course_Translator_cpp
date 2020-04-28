@@ -11,8 +11,9 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include "Token.hpp"
 
-class lexer {
+class Lexer {
 private:
     static std::string singleSpace(std::string const &input) {
         std::istringstream buffer(input);
@@ -42,7 +43,10 @@ private:
 public:
 
     std::vector<std::string> tokenize(std::string program) {
-        tokenizeString(&program);
+        std::list<Token> tokens;
+        for(auto &token : tokenizeString(&program)){
+            tokens.emplace_back(token);
+        }
         return tokenizeString(&program);
     }
 };
