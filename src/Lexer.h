@@ -29,7 +29,13 @@ private:
         std::vector<std::string> tokens;
         std::string strToTokenize = *str;
         strToTokenize=singleSpace(strToTokenize);
-
+        for (int i = 0; i < strToTokenize.length(); i++)
+        {
+            if (strToTokenize[i] == ';')
+            {
+                strToTokenize.insert(i++, " ");
+            }
+        }
         boost::split(tokens, strToTokenize, boost::is_any_of("\t,\n, "));
         int i=0;
         for(auto &token:tokens){
