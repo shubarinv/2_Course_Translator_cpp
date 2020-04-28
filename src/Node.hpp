@@ -9,16 +9,6 @@
 #include <string>
 
 class Node {
-    enum class nodeType {
-        START,
-        EXPR,
-
-        CONST, // Число
-        ADD,  // Сложение
-        SUB,  // Вычитание
-        MUL, // Умножение
-        DIV, // Деление
-    };
 public:
     std::string value;
     nodeType type;
@@ -37,6 +27,16 @@ public:
     }
 
 
+    enum class nodeType {
+        START,
+        EXPR,
+
+        CONST, // Число
+        ADD,  // Сложение
+        SUB,  // Вычитание
+        MUL, // Умножение
+        DIV, // Деление
+    };
 };
 
 #endif //SPO_COMPILER_NODE_HPP
