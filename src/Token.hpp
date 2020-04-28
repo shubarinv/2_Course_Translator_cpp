@@ -9,6 +9,7 @@
 #include <utility>
 #include <algorithm>
 #include <iostream>
+#include <boost/regex.hpp>
 
 
 class Token {
@@ -44,6 +45,8 @@ private:
 public:
     static tokenType determineTokenType(const std::string &str) {
         using namespace std;
+        boost::regex IdRegex("^[a-zA-Z_$][a-zA-Z_$0-9]*$");
+        boost::smatch what;
         if (isNumber(str))
             return tokenType::Num;
         else if (str == ":=") return tokenType::Assignment;
@@ -73,8 +76,10 @@ public:
         else if (str == " ") {
             std::cout << "tokenValue is somehow whitespace" << endl;
             return tokenType::Undefined;
-        } else
+        } else if(boost::regex_match(str,what,IdRegex))
             return tokenType::Id;
+        else
+            return tokenType::Undefined;
     }
 
 public:
@@ -82,7 +87,7 @@ public:
     explicit Token(std::string _val) {
         text = std::move(_val);
         type= determineTokenType(text);
-        std::cout << "Token of value: " << text << " has type: " << typeToString(type) << std::endl;
+        //std::cout << "Token of value: " << text << " has type: " << typeToString(type) << std::endl;
     }
 
     static std::string typeToString(tokenType _type) {
@@ -110,6 +115,7 @@ public:
             case tokenType::Undefined:
                 return "Undefined";
         }
+        return "ERROR";
     }
 };
 
