@@ -7,9 +7,10 @@
 
 // Тест превода одной сторки в токены
 TEST(lexer, tokenizeSingleLine) {
+
+
     std::string testingStr = "int a = 5;";
     std::vector<std::string> expectedOutput = {"int", "a", "=", "5", ";"};
-
     Lexer lexer(testingStr);
     lexer.tokenize();
     auto tokens=lexer.getTokens();
@@ -25,7 +26,6 @@ TEST(lexer, tokenizeSingleLine) {
 TEST(lexer, tokenizeMultiplelines) {
     std::string testingStr = "int a = 5;\ndouble b = 5.3;";
     std::vector<std::string> expectedOutput = {"int", "a", "=", "5", ";", "double", "b", "=", "5.3", ";"};
-
     Lexer lexer(testingStr);
     lexer.tokenize();
     auto tokens=lexer.getTokens();
@@ -41,7 +41,6 @@ TEST(lexer, tokenizeMultiplelines) {
 TEST(lexer, tokenizeLinesWithTrash) {
     std::string testingStr = "int a = 5;\n         \t\ndouble b = 5.3;";
     std::vector<std::string> expectedOutput = {"int", "a", "=", "5", ";", "double", "b", "=", "5.3", ";"};
-
     Lexer lexer(testingStr);
     lexer.tokenize();
     auto tokens=lexer.getTokens();

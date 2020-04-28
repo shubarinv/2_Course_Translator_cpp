@@ -53,6 +53,14 @@ public:
         using namespace std;
         boost::regex IdRegex("^[a-zA-Z_$][a-zA-Z_$0-9]*$");
         boost::smatch what;
+
+        try{ // checking if string is double
+            double value = std::stod(str);
+            return tokenType::Num;
+        }
+        catch(std::exception& e){}
+
+
         if (isNumber(str))
             return tokenType::Num;
         else if (str == ":=") return tokenType::Assignment;
