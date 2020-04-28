@@ -9,11 +9,20 @@
 #include <boost/algorithm/string/split.hpp>
 
 #include <iostream>
+#include <utility>
 #include <vector>
 #include <sstream>
 #include "Token.hpp"
 
 class Lexer {
+private:
+    std::list<Token> tokens;
+    std::string program;
+public:
+    [[nodiscard]] const std::list<Token> &getTokens() const {
+        return tokens;
+    }
+
 private:
     static std::string singleSpace(std::string const &input) {
         std::istringstream buffer(input);
@@ -25,7 +34,7 @@ private:
         return result.str();
     }
 
-    static std::vector<std::string> tokenizeString(std::string *str) {
+    static std::vector<std::string> splitString(std::string *str) {
         std::vector<std::string> tokens;
         std::string strToTokenize = *str;
         strToTokenize=singleSpace(strToTokenize);
@@ -47,13 +56,14 @@ private:
     }
 
 public:
+    explicit Lexer(std::string _program){
+        program=std::move(_program);
+    }
 
-    std::vector<std::string> tokenize(std::string program) {
-        std::list<Token> tokens;
-        for(auto &token : tokenizeString(&program)){
+    void tokenize() {
+        for(auto &token : splitString(&program)){
             tokens.emplace_back(token);
         }
-        return tokenizeString(&program);
     }
 };
 

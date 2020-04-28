@@ -7,25 +7,49 @@
 
 // Тест превода одной сторки в токены
 TEST(lexer, tokenizeSingleLine) {
-    Lexer lexer;
-    std::string testingStr="int a = 5;";
-    std::vector<std::string> expectedOutput={"int","a","=","5;"};
-    EXPECT_EQ(lexer.tokenize(testingStr), expectedOutput);
+    std::string testingStr = "int a = 5;";
+    std::vector<std::string> expectedOutput = {"int", "a", "=", "5", ";"};
+
+    Lexer lexer(testingStr);
+    lexer.tokenize();
+    auto tokens=lexer.getTokens();
+    std::vector<std::string> actualOutput;
+    for(auto& token:tokens){
+        actualOutput.push_back(token.getText());
+    }
+
+    EXPECT_EQ(actualOutput, expectedOutput);
 }
 
 // Тест превода нескольких строк в токены
 TEST(lexer, tokenizeMultiplelines) {
-    Lexer lexer;
-    std::string testingStr="int a = 5;\ndouble b = 5.3;";
-    std::vector<std::string> expectedOutput={"int","a","=","5;","double","b","=","5.3;"};
-    EXPECT_EQ(lexer.tokenize(testingStr), expectedOutput);
+    std::string testingStr = "int a = 5;\ndouble b = 5.3;";
+    std::vector<std::string> expectedOutput = {"int", "a", "=", "5", ";", "double", "b", "=", "5.3", ";"};
+
+    Lexer lexer(testingStr);
+    lexer.tokenize();
+    auto tokens=lexer.getTokens();
+    std::vector<std::string> actualOutput;
+    for(auto& token:tokens){
+        actualOutput.push_back(token.getText());
+    }
+
+    EXPECT_EQ(actualOutput, expectedOutput);
 }
 
 // Тест превода сторки с мосором(несколько пробелов подряд с табуляцией и переносом строки)
 TEST(lexer, tokenizeLinesWithTrash) {
-    Lexer lexer;
-    std::string testingStr="int a = 5;\n         \t\ndouble b = 5.3;";
-    std::vector<std::string> expectedOutput={"int","a","=","5;","double","b","=","5.3;"};
-    EXPECT_EQ(lexer.tokenize(testingStr), expectedOutput);
+    std::string testingStr = "int a = 5;\n         \t\ndouble b = 5.3;";
+    std::vector<std::string> expectedOutput = {"int", "a", "=", "5", ";", "double", "b", "=", "5.3", ";"};
+
+    Lexer lexer(testingStr);
+    lexer.tokenize();
+    auto tokens=lexer.getTokens();
+    std::vector<std::string> actualOutput;
+    for(auto& token:tokens){
+        actualOutput.push_back(token.getText());
+    }
+
+    EXPECT_EQ(actualOutput, expectedOutput);
 }
 

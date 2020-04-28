@@ -36,6 +36,12 @@ public:
 
 private:
     std::string text;
+public:
+    [[nodiscard]] const std::string &getText() const {
+        return text;
+    }
+
+private:
 
     static bool isNumber(const std::string &s) {
         return !s.empty() &&

@@ -21,7 +21,7 @@ int main() {
         std::cin >> filename;
     }
 
-    Lexer lexer;
+    Lexer lexer("");
     // Читает файл и отправляет его в Lexer для обработки и токенизации
     std::ifstream file(filename);
     if (file.is_open()) {
