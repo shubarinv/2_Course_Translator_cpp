@@ -49,7 +49,7 @@ public:
     }
 
 private:
-    static std::string singleSpace(std::string const &input) {
+    [[deprecated]]static std::string singleSpace(std::string const &input) {
         std::istringstream buffer(input);
         std::ostringstream result;
 
@@ -59,7 +59,7 @@ private:
         return result.str();
     }
 
-    static std::string emplaceBefore(std::string str, char what, const std::string &with) {
+    [[deprecated]]static std::string emplaceBefore(std::string str, char what, const std::string &with) {
         for (int i = 0; i < str.length(); i++) {
             if (str[i] == what) {
                 str.insert(i++, with);
@@ -68,7 +68,7 @@ private:
         return str;
     }
 
-    static std::vector<std::string> splitString(std::string *str) {
+    [[deprecated]]static std::vector<std::string> splitString(std::string *str) {
         std::vector<std::string> tokens;
         std::string strToTokenize = *str;
         strToTokenize = singleSpace(strToTokenize);
@@ -90,7 +90,7 @@ public:
         program = std::move(_program);
     }
 
-    void tokenize() {
+    [[deprecated]]void tokenize() {
         for (auto &token : splitString(&program)) {
             tokens.emplace_back(token);
         }
