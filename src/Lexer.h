@@ -48,9 +48,6 @@ public:
     }
 
 private:
-    static bool removalCheck(const Token &token) {
-        return token.getText().empty()&&token.getType()==Token::tokenType::Undefined;
-    }
     static std::string singleSpace(std::string const &input) {
         std::istringstream buffer(input);
         std::ostringstream result;
