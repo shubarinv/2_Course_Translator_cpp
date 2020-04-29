@@ -43,9 +43,9 @@ public:
 
 private:
 
-    static bool isNumber(const std::string &s) {
-        return !s.empty() &&
-               std::find_if(s.begin(), s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
+    static bool isNumber(const std::string &str) {
+        return !str.empty() &&
+               std::find_if(str.begin(), str.end(), [](unsigned char c) { return !std::isdigit(c); }) == str.end();
     }
 
 public:
@@ -72,9 +72,18 @@ public:
         else if (str == "/") return tokenType::MathOp;
 
         else if (str == "if") return tokenType::Keyword;
+        else if (str == "then") return tokenType::Keyword;
         else if (str == "else") return tokenType::Keyword;
         else if (str == "for") return tokenType::Keyword;
         else if (str == "while") return tokenType::Keyword;
+        else if (str == "var") return tokenType::Keyword;
+        else if (str == "procedure") return tokenType::Keyword;
+        else if (str == "type") return tokenType::Keyword;
+        else if (str == "begin") return tokenType::Keyword;
+        else if (str == "end") return tokenType::Keyword;
+        else if (str == "downto") return tokenType::Keyword;
+        else if (str == "do") return tokenType::Keyword;
+        else if (str == "Continue") return tokenType::Keyword;
 
         else if (str == "(") return tokenType::Bracket;
         else if (str == ")") return tokenType::Bracket;
@@ -87,7 +96,10 @@ public:
         else if (str == ">=") return tokenType::Comparison;
         else if (str == "<=") return tokenType::Comparison;
 
-        else if (str == "int") return tokenType::DataType;
+
+        else if (str == "Integer") return tokenType::DataType;
+        else if (str == "LongInt") return tokenType::DataType;
+        else if (str == "Byte") return tokenType::DataType;
 
         else if (str == " ") {
             std::cout << "tokenValue is somehow whitespace" << endl;
@@ -103,7 +115,6 @@ public:
     explicit Token(std::string _val) {
         text = std::move(_val);
         type= determineTokenType(text);
-        //std::cout << "Token of value: " << text << " has type: " << typeToString(type) << std::endl;
     }
 
     static std::string typeToString(tokenType _type) {

@@ -79,6 +79,8 @@ private:
         strToTokenize = emplaceBefore(strToTokenize, '/', " ");
         strToTokenize = emplaceBefore(strToTokenize, '-', " ");
         strToTokenize = emplaceBefore(strToTokenize, '*', " ");
+        strToTokenize = emplaceBefore(strToTokenize, ':', " ");
+        strToTokenize = emplaceBefore(strToTokenize, '\'', " ");
         boost::split(tokens, strToTokenize, boost::is_any_of("\t,\n, "));
         return tokens;
     }

@@ -11,7 +11,7 @@ int main() {
     std::string filename;
     std::cin >> filename;
     // Код находящийся ниже проверяет наличие указанного файла и его расширение
-    std::string requiredFileExtension = ".exe"; // TODO: Поставить тут расширение выбранного языка
+    std::string requiredFileExtension = ".dpr";
     while (!filesystem::exists(filename) || !boost::algorithm::ends_with(filename, requiredFileExtension)) {
         if (!boost::algorithm::ends_with(filename, requiredFileExtension)) // проверка расширения файла
             std::cout << "Unexpected file extension" << std::endl;
@@ -25,9 +25,9 @@ int main() {
     // Читает файл и отправляет его в Lexer для обработки и токенизации
     std::ifstream file(filename);
     if (file.is_open()) {
-        lexer=new Lexer("int a = b;\n"
-                        "if ( a == b ) {\n"
-                        "int b = 0; }");
+        std::string fileContent;
+        fileContent=std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());;
+        lexer=new Lexer(fileContent);
         lexer->tokenize();
         //lexer->printAllTokens();
         lexer->printToFile();
