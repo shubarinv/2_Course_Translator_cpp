@@ -36,7 +36,21 @@ public:
         return tokens;
     }
 
+    void printAllTokens() {
+        using namespace std;
+        cout << "=========================" << endl;
+        int i = 0;
+        for (auto &token :tokens) {
+            cout << "[" << i << "] Type: " << Token::typeToString(token.getType()) << " Value: " << token.getText()
+                 << endl;
+            i++;
+        }
+    }
+
 private:
+    static bool removalCheck(const Token &token) {
+        return token.getText().empty()&&token.getType()==Token::tokenType::Undefined;
+    }
     static std::string singleSpace(std::string const &input) {
         std::istringstream buffer(input);
         std::ostringstream result;
@@ -47,22 +61,27 @@ private:
         return result.str();
     }
 
+    static std::string emplaceBefore(std::string str, char what, const std::string &with) {
+        for (int i = 0; i < str.length(); i++) {
+            if (str[i] == what) {
+                str.insert(i++, with);
+            }
+        }
+        return str;
+    }
+
     static std::vector<std::string> splitString(std::string *str) {
         std::vector<std::string> tokens;
         std::string strToTokenize = *str;
         strToTokenize = singleSpace(strToTokenize);
-        for (int i = 0; i < strToTokenize.length(); i++) {
-            if (strToTokenize[i] == ';') {
-                strToTokenize.insert(i++, " ");
-            }
-        }
+        strToTokenize = emplaceBefore(strToTokenize, ';', " ");
+        strToTokenize = emplaceBefore(strToTokenize, '(', " ");
+        strToTokenize = emplaceBefore(strToTokenize, ')', " ");
+        strToTokenize = emplaceBefore(strToTokenize, '+', " ");
+        strToTokenize = emplaceBefore(strToTokenize, '/', " ");
+        strToTokenize = emplaceBefore(strToTokenize, '-', " ");
+        strToTokenize = emplaceBefore(strToTokenize, '*', " ");
         boost::split(tokens, strToTokenize, boost::is_any_of("\t,\n, "));
-        int i = 0;
-        for (auto &token:tokens) {
-            if (token.empty())
-                tokens.erase(tokens.begin() + i);
-            i++;
-        }
         return tokens;
     }
 
@@ -75,6 +94,7 @@ public:
         for (auto &token : splitString(&program)) {
             tokens.emplace_back(token);
         }
+        tokens.pop_back();
     }
 };
 

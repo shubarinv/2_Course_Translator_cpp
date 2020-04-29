@@ -25,8 +25,11 @@ int main() {
     // Читает файл и отправляет его в Lexer для обработки и токенизации
     std::ifstream file(filename);
     if (file.is_open()) {
-        //throw NotImplementedException();
-        //lexer=new Lexer()
+        lexer=new Lexer("int a = b;\n"
+                        "if ( a == b ) {\n"
+                        "int b = 0; }");
+        lexer->tokenize();
+        lexer->printAllTokens();
     }
 
     return 0;

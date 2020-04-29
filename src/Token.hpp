@@ -78,6 +78,8 @@ public:
 
         else if (str == "(") return tokenType::Bracket;
         else if (str == ")") return tokenType::Bracket;
+        else if (str == "{") return tokenType::Bracket;
+        else if (str == "}") return tokenType::Bracket;
         else if (str == ";") return tokenType::Semicolon;
 
         else if (str == ">") return tokenType::Comparison;
