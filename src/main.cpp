@@ -29,7 +29,8 @@ int main() {
                         "if ( a == b ) {\n"
                         "int b = 0; }");
         lexer->tokenize();
-        lexer->printAllTokens();
+        //lexer->printAllTokens();
+        lexer->printToFile();
     }
 
     return 0;
