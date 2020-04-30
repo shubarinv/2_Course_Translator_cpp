@@ -26,8 +26,8 @@ int main() {
     std::ifstream file(filename);
     if (file.is_open()) {
         std::string fileContent;
-        fileContent=std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());;
-        lexer=new Lexer(fileContent);
+        fileContent = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());;
+        lexer = new Lexer(fileContent);
         lexer->tokenize();
         //lexer->printAllTokens();
         lexer->printToFile();

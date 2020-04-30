@@ -13,76 +13,52 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
+#include <queue>
 #include "Token.hpp"
 
 class Lexer {
 private:
-    std::vector<Token> tokens;
+    std::queue<Token> tokens;
     std::string program;
     int currentTokenIndex = 0;
     Token *currentToken{};
 public:
     void nextToken() {
-        if (currentTokenIndex < tokens.size() - 1) {
-            currentToken = &tokens[currentTokenIndex];
-            currentTokenIndex++;
-        }
+        tokens.pop();
     }
 
-    [[nodiscard]] Token *getCurrentToken() const {
-        return currentToken;
+    Token *getCurrentToken() {
+        return &tokens.front();
     }
 
-    [[nodiscard]] std::vector<Token> getTokens() const {
+    [[nodiscard]] std::queue<Token> getTokens() const {
         return tokens;
     }
 
     void printAllTokens() {
         using namespace std;
+        std::queue<Token> tmp = tokens;
         cout << "=========================" << endl;
         int i = 0;
-        for (auto &token :tokens) {
-            cout << "[" << i << "] Type: " << Token::typeToString(token.getType()) << " Value: " << token.getText()
+        while (!tmp.empty()) {
+            cout << "[" << i << "] Type: " << Token::typeToString(tmp.front().getType()) << " Value: " << tmp.front().getText()
                  << endl;
             i++;
+            tmp.pop();
         }
     }
 
 private:
-    static std::string singleSpace(std::string const &input) {
-        std::istringstream buffer(input);
-        std::ostringstream result;
 
-        std::copy(std::istream_iterator<std::string>(buffer),
-                  std::istream_iterator<std::string>(),
-                  std::ostream_iterator<std::string>(result, " "));
-        return result.str();
-    }
+    std::string getString(char x) {
+        // string class has a constructor
+        // that allows us to specify size of
+        // string as first parameter and character
+        // to be filled in given size as second
+        // parameter.
+        std::string s(1, x);
 
-    static std::string emplaceBefore(std::string str, char what, const std::string &with) {
-        for (int i = 0; i < str.length(); i++) {
-            if (str[i] == what) {
-                str.insert(i++, with);
-            }
-        }
-        return str;
-    }
-
-    static std::vector<std::string> splitString(std::string *str) {
-        std::vector<std::string> tokens;
-        std::string strToTokenize = *str;
-        strToTokenize = singleSpace(strToTokenize);
-        strToTokenize = emplaceBefore(strToTokenize, ';', " ");
-        strToTokenize = emplaceBefore(strToTokenize, '(', " ");
-        strToTokenize = emplaceBefore(strToTokenize, ')', " ");
-        strToTokenize = emplaceBefore(strToTokenize, '+', " ");
-        strToTokenize = emplaceBefore(strToTokenize, '/', " ");
-        strToTokenize = emplaceBefore(strToTokenize, '-', " ");
-        strToTokenize = emplaceBefore(strToTokenize, '*', " ");
-        strToTokenize = emplaceBefore(strToTokenize, ':', " ");
-        strToTokenize = emplaceBefore(strToTokenize, '\'', " ");
-        boost::split(tokens, strToTokenize, boost::is_any_of("\t,\n, "));
-        return tokens;
+        return s;
     }
 
 public:
@@ -91,21 +67,65 @@ public:
     }
 
     void tokenize() {
-        for (auto &token : splitString(&program)) {
-            tokens.emplace_back(token);
+        using namespace std;
+        string lexeme;
+        for (int i = 0; i < program.size(); ++i) {
+            //cout<<"Current program[i]= ("<<program[i]<<")"<<endl;
+            if (program[i] == '\'' || program[i] == '"') {
+                if (!lexeme.empty()) {
+                    cout << "lexeme is NOT empty,  but should be: " << lexeme << endl;
+                }
+                lexeme += program[i];
+                i++;
+                while (program.size() > i) {
+                    lexeme += program[i];
+                    i++;
+                    if (program[i] == '\'' || program[i] == '"') break;
+                }
+                lexeme += program[i];
+                if (!lexeme.empty()) {
+                    tokens.emplace(lexeme);
+                    lexeme = "";
+                }
+            } else if (Token::determineTokenType(getString(program[i])) != Token::tokenType::Undefined &&
+                       Token::determineTokenType(getString(program[i])) != Token::tokenType::Id) {
+                if (!lexeme.empty()) {
+                    tokens.emplace(lexeme);
+                    lexeme = "";
+                }
+                if (program[i] != ' ' && program[i] != '\t' && program[i] != '\n' && program[i] != '\0') {
+                    if (Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) !=
+                        Token::tokenType::Undefined &&
+                        Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) !=
+                        Token::tokenType::Id) {
+                        tokens.emplace(getString(program[i]) + getString(program[i + 1]));
+                        i++;
+                        continue;
+                    } else
+                        tokens.emplace(getString(program[i]));
+                }
+            } else if (program[i] == ' ' && !lexeme.empty()) {
+                tokens.emplace(lexeme);
+                lexeme = "";
+            } else if (program[i] != ' ' && program[i] != '\t' && program[i] != '\n' && program[i] != '\0') {
+                lexeme += program[i];
+            }
         }
-        tokens.pop_back();
     }
-    void printToFile(){
+
+    void printToFile() {
         using namespace std;
         ofstream out("output.txt");
-        out<<"# Этот файл используется только для демонстрации работоспособности лексического анализатора\n";
-        out<<"# lexer.printToFiles SHOULD BE REMOVED\n";
+        out << "# Этот файл используется только для демонстрации работоспособности лексического анализатора\n";
+        out << "# lexer.printToFiles SHOULD BE REMOVED\n";
         int i = 0;
-        for (auto &token :tokens) {
-            out << "[" << i << "] Тип: " << Token::typeToString(token.getType()) << " Значение: " << token.getText()
-                 << endl;
+        std::queue<Token> tmp = tokens;
+        while (!tmp.empty()) {
+            out << "[" << i << "] Тип: " << Token::typeToString(tmp.front().getType()) << " Значение: "
+                << tmp.front().getText()
+                << endl;
             i++;
+            tmp.pop();
         }
         out.close();
     }
