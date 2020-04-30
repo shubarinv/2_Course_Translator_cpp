@@ -15,8 +15,19 @@ private:
     Ast * ast;
 
 public:
-    Parser(){
-        throw NotImplementedException();
+    Parser(std::string _filename){
+        lexer = new Lexer(_filename);
+
+        ast = new Ast();
+    }
+
+    void parse(){
+        lexer->tokenize();
+    }
+
+    ~ Parser(){
+        delete lexer;
+        delete ast;
     }
 };
 

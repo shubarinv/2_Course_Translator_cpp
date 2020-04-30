@@ -26,3 +26,13 @@ public:
         return _text.c_str();
     }
 };
+
+class ParsingError: public std::exception {
+private:
+    std::string message_;
+public:
+    ParsingError(const std::string& message) : message_(message) {}
+    virtual const char* what() const throw() {
+        return message_.c_str();
+    }
+};
