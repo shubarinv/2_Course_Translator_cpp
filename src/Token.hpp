@@ -25,7 +25,11 @@ public:
         Assignment,
         Id,
         Num,
-        Undefined
+        Undefined,
+        String,
+        Colon,
+        COMMA,
+        DOT
     };
 private:
     tokenType type = tokenType::Undefined;
@@ -54,12 +58,14 @@ public:
         boost::regex IdRegex("^[a-zA-Z_$][a-zA-Z_$0-9]*$");
         boost::smatch what;
 
-        try{ // checking if string is double
+        try { // checking if string is double
             double value = std::stod(str);
             return tokenType::Num;
         }
-        catch(std::exception& e){}
+        catch (std::exception &e) {}
 
+        if ((str[0] == '\'' || str[0] == '\"') && str[str.size() - 1] == '\'' || str[str.size() - 1] == '\"')
+            return tokenType::String;
 
         if (isNumber(str))
             return tokenType::Num;
@@ -84,12 +90,19 @@ public:
         else if (str == "downto") return tokenType::Keyword;
         else if (str == "do") return tokenType::Keyword;
         else if (str == "Continue") return tokenType::Keyword;
+        else if (str == "readln") return tokenType::Keyword;
+        else if (str == "writeln") return tokenType::Keyword;
+        else if (str == "write") return tokenType::Keyword;
+        else if (str == "read") return tokenType::Keyword;
 
         else if (str == "(") return tokenType::Bracket;
         else if (str == ")") return tokenType::Bracket;
         else if (str == "{") return tokenType::Bracket;
         else if (str == "}") return tokenType::Bracket;
         else if (str == ";") return tokenType::Semicolon;
+        else if (str == ":") return tokenType::Colon;
+        else if (str == ",") return tokenType::COMMA;
+        else if (str == ".") return tokenType::DOT;
 
         else if (str == ">") return tokenType::Comparison;
         else if (str == "<") return tokenType::Comparison;
@@ -101,10 +114,7 @@ public:
         else if (str == "LongInt") return tokenType::DataType;
         else if (str == "Byte") return tokenType::DataType;
 
-        else if (str == " ") {
-            std::cout << "tokenValue is somehow whitespace" << endl;
-            return tokenType::Undefined;
-        } else if(boost::regex_match(str,what,IdRegex))
+        else if (boost::regex_match(str, what, IdRegex))
             return tokenType::Id;
         else
             return tokenType::Undefined;
@@ -114,7 +124,7 @@ public:
 
     explicit Token(std::string _val) {
         text = std::move(_val);
-        type= determineTokenType(text);
+        type = determineTokenType(text);
     }
 
     static std::string typeToString(tokenType _type) {
@@ -141,6 +151,14 @@ public:
                 return "Num";
             case tokenType::Undefined:
                 return "Undefined";
+            case tokenType::String:
+                return "String";
+            case tokenType::Colon:
+                return "Colon";
+            case tokenType::COMMA:
+                return "COMMA";
+            case tokenType::DOT:
+                return "DOT";
         }
         return "ERROR";
     }
