@@ -69,7 +69,7 @@ private:
     }
 
 public:
-    Lexer(std::string _filename) {
+    explicit Lexer(const std::string& _filename) {
         loadFile(_filename);
     }
 

@@ -8,9 +8,10 @@
 using namespace boost;
 
 int main() {
-    std::string filename;
-    std::cin >> filename;
+    std::string filename="delphiTestFile1.dpr";
+    //std::cin >> filename;
     // Код находящийся ниже проверяет наличие указанного файла и его расширение
+
     std::string requiredFileExtension = ".dpr";
     while (!filesystem::exists(filename) || !boost::algorithm::ends_with(filename, requiredFileExtension)) {
         if (!boost::algorithm::ends_with(filename, requiredFileExtension)) // проверка расширения файла
@@ -21,8 +22,8 @@ int main() {
         std::cin >> filename;
     }
 
-    Lexer *lexer;
-    // Читает файл и отправляет его в Lexer для обработки и токенизации
+    auto *lexer = new Lexer(filename);
+    lexer->tokenize();
 
     return 0;
 }
