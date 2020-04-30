@@ -15,8 +15,9 @@ TEST(lexer, tokenizeSingleLine) {
     lexer.tokenize();
     auto tokens=lexer.getTokens();
     std::vector<std::string> actualOutput;
-    for(auto& token:tokens){
-        actualOutput.push_back(token.getText());
+    while (!tokens.empty()) {
+        actualOutput.push_back(tokens.front().getText());
+        tokens.pop();
     }
 
     EXPECT_EQ(actualOutput, expectedOutput);
@@ -30,8 +31,9 @@ TEST(lexer, tokenizeMultiplelines) {
     lexer.tokenize();
     auto tokens=lexer.getTokens();
     std::vector<std::string> actualOutput;
-    for(auto& token:tokens){
-        actualOutput.push_back(token.getText());
+    while (!tokens.empty()) {
+        actualOutput.push_back(tokens.front().getText());
+        tokens.pop();
     }
 
     EXPECT_EQ(actualOutput, expectedOutput);
@@ -45,8 +47,9 @@ TEST(lexer, tokenizeLinesWithTrash) {
     lexer.tokenize();
     auto tokens=lexer.getTokens();
     std::vector<std::string> actualOutput;
-    for(auto& token:tokens){
-        actualOutput.push_back(token.getText());
+    while (!tokens.empty()) {
+        actualOutput.push_back(tokens.front().getText());
+        tokens.pop();
     }
 
     EXPECT_EQ(actualOutput, expectedOutput);

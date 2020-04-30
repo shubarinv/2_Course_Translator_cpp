@@ -23,15 +23,6 @@ int main() {
 
     Lexer *lexer;
     // Читает файл и отправляет его в Lexer для обработки и токенизации
-    std::ifstream file(filename);
-    if (file.is_open()) {
-        std::string fileContent;
-        fileContent=std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());;
-        lexer=new Lexer(fileContent);
-        lexer->tokenize();
-        //lexer->printAllTokens();
-        lexer->printToFile();
-    }
 
     return 0;
 }
