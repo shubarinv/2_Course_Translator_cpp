@@ -26,7 +26,7 @@ TEST(token, keywordTokenTypeDetection) {
 
 TEST(token, mathOpTokenTypeDetection) {
     Token token("+");
-    EXPECT_EQ(token.getType(), Token::tokenType::MathOp);
+    EXPECT_EQ(token.getType(), Token::tokenType::MathPlus);
 }
 
 
@@ -42,7 +42,7 @@ TEST(token, keywordTokenTypeTranslation) {
 
 TEST(token, mathOpTokenTypeTranslation) {
     Token token("+");
-    EXPECT_EQ(Token::typeToString(token.getType()), "MathOp");
+    EXPECT_EQ(Token::typeToString(token.getType()), "MathPlus");
 }
 
 TEST(token, idOpTokenTypeTranslation) {

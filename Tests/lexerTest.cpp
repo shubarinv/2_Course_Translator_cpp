@@ -11,7 +11,8 @@ TEST(lexer, tokenizeSingleLine) {
 
     std::string testingStr = "int a = 5;";
     std::vector<std::string> expectedOutput = {"int", "a", "=", "5", ";"};
-    Lexer lexer(testingStr);
+    Lexer lexer("");
+    lexer.insertText(testingStr);
     lexer.tokenize();
     auto tokens=lexer.getTokens();
     std::vector<std::string> actualOutput;
@@ -27,7 +28,8 @@ TEST(lexer, tokenizeSingleLine) {
 TEST(lexer, tokenizeMultiplelines) {
     std::string testingStr = "int a = 5;\ndouble b = 5.3;";
     std::vector<std::string> expectedOutput = {"int", "a", "=", "5", ";", "double", "b", "=", "5.3", ";"};
-    Lexer lexer(testingStr);
+    Lexer lexer("");
+    lexer.insertText(testingStr);
     lexer.tokenize();
     auto tokens=lexer.getTokens();
     std::vector<std::string> actualOutput;
@@ -43,7 +45,8 @@ TEST(lexer, tokenizeMultiplelines) {
 TEST(lexer, tokenizeLinesWithTrash) {
     std::string testingStr = "int a = 5;\n         \t\ndouble b = 5.3;";
     std::vector<std::string> expectedOutput = {"int", "a", "=", "5", ";", "double", "b", "=", "5.3", ";"};
-    Lexer lexer(testingStr);
+    Lexer lexer("");
+    lexer.insertText(testingStr);
     lexer.tokenize();
     auto tokens=lexer.getTokens();
     std::vector<std::string> actualOutput;
@@ -54,4 +57,18 @@ TEST(lexer, tokenizeLinesWithTrash) {
 
     EXPECT_EQ(actualOutput, expectedOutput);
 }
+TEST(lexer, tokenizeLinesWithIntMoreThanNine) {
+    std::string testingStr = "Int a := 57899887;\n         \t\nDouble b := 578.3778;";
+    std::vector<std::string> expectedOutput = {"Int", "a", ":=", "57899887", ";", "Double", "b", ":=", "578.3778", ";"};
+    Lexer lexer("");
+    lexer.insertText(testingStr);
+    lexer.tokenize();
+    auto tokens=lexer.getTokens();
+    std::vector<std::string> actualOutput;
+    while (!tokens.empty()) {
+        actualOutput.push_back(tokens.front().getText());
+        tokens.pop();
+    }
 
+    EXPECT_EQ(actualOutput, expectedOutput);
+}

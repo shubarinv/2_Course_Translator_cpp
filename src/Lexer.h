@@ -41,7 +41,8 @@ public:
         cout << "=========================" << endl;
         int i = 0;
         while (!tmp.empty()) {
-            cout << "[" << i << "] Type: " << Token::typeToString(tmp.front().getType()) << " Value: " << tmp.front().getText()
+            cout << "[" << i << "] Type: " << Token::typeToString(tmp.front().getType()) << " Value: "
+                 << tmp.front().getText()
                  << endl;
             i++;
             tmp.pop();
@@ -60,7 +61,8 @@ private:
 
         return s;
     }
-    void loadFile(const std::string& _filename){
+
+    void loadFile(const std::string &_filename) {
         std::ifstream file(_filename);
         if (file.is_open()) {
             std::string fileContent;
@@ -69,12 +71,14 @@ private:
     }
 
 public:
-    explicit Lexer(const std::string& _filename) {
+    explicit Lexer(const std::string &_filename) {
         loadFile(_filename);
     }
-    void insertText(std::string _program){
-        program=std::move(_program);
+
+    void insertText(std::string _program) {
+        program = std::move(_program);
     }
+
     void tokenize() {
         using namespace std;
         string lexeme;
@@ -96,22 +100,29 @@ public:
                     lexeme = "";
                 }
             } else if (Token::determineTokenType(getString(program[i])) != Token::tokenType::Undefined &&
-                       Token::determineTokenType(getString(program[i])) != Token::tokenType::Id&&
+                       Token::determineTokenType(getString(program[i])) != Token::tokenType::Id &&
                        Token::determineTokenType(getString(program[i])) != Token::tokenType::Num) {
-                if (!lexeme.empty()) {
-                    tokens.emplace(lexeme);
-                    lexeme = "";
+
+                if (Token::determineTokenType(getString(program[i])) == Token::tokenType::DOT &&
+                    Token::determineTokenType(getString(program[i + 1])) == Token::tokenType::Num) {
+                    lexeme += program[i];
                 }
-                if (program[i] != ' ' && program[i] != '\t' && program[i] != '\n' && program[i] != '\0') {
-                    if (Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) !=
-                        Token::tokenType::Undefined &&
-                        Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) !=
-                        Token::tokenType::Id) {
-                        tokens.emplace(getString(program[i]) + getString(program[i + 1]));
-                        i++;
-                        continue;
-                    } else
-                        tokens.emplace(getString(program[i]));
+                else {
+                    if (!lexeme.empty()) {
+                        tokens.emplace(lexeme);
+                        lexeme = "";
+                    }
+                    if (program[i] != ' ' && program[i] != '\t' && program[i] != '\n' && program[i] != '\0') {
+                        if (Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) !=
+                            Token::tokenType::Undefined &&
+                            Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) !=
+                            Token::tokenType::Id) {
+                            tokens.emplace(getString(program[i]) + getString(program[i + 1]));
+                            i++;
+                            continue;
+                        } else
+                            tokens.emplace(getString(program[i]));
+                    }
                 }
             } else if (program[i] == ' ' && !lexeme.empty()) {
                 tokens.emplace(lexeme);
