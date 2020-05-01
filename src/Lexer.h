@@ -72,12 +72,13 @@ public:
     explicit Lexer(const std::string& _filename) {
         loadFile(_filename);
     }
-
+    void insertText(std::string _program){
+        program=std::move(_program);
+    }
     void tokenize() {
         using namespace std;
         string lexeme;
         for (int i = 0; i < program.size(); ++i) {
-            //cout<<"Current program[i]= ("<<program[i]<<")"<<endl;
             if (program[i] == '\'' || program[i] == '"') {
                 if (!lexeme.empty()) {
                     cout << "lexeme is NOT empty,  but should be: " << lexeme << endl;
@@ -95,7 +96,8 @@ public:
                     lexeme = "";
                 }
             } else if (Token::determineTokenType(getString(program[i])) != Token::tokenType::Undefined &&
-                       Token::determineTokenType(getString(program[i])) != Token::tokenType::Id) {
+                       Token::determineTokenType(getString(program[i])) != Token::tokenType::Id&&
+                       Token::determineTokenType(getString(program[i])) != Token::tokenType::Num) {
                 if (!lexeme.empty()) {
                     tokens.emplace(lexeme);
                     lexeme = "";
