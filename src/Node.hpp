@@ -7,6 +7,7 @@
 
 
 #include <string>
+#include <utility>
 
 class Node {
 public:
@@ -27,9 +28,9 @@ public:
     Node* op3;
     Node* op4;
 
-    Node(nodeType _type,std::string _value,Node* _op1=nullptr,Node* _op2=nullptr,Node* _op3=nullptr,Node* _op4=nullptr){
+    Node(nodeType _type,std::string _value="",Node* _op1=nullptr,Node* _op2=nullptr,Node* _op3=nullptr,Node* _op4=nullptr){
         type=_type;
-        value=_value;
+        value=std::move(_value);
         op1=_op1;
         op2=_op2;
         op3=_op3;

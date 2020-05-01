@@ -1,5 +1,5 @@
-#include "exceptions.cpp"
 #include "Lexer.h"
+#include "Parser.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -22,8 +22,8 @@ int main() {
         std::cin >> filename;
     }
 
-    auto *lexer = new Lexer(filename);
-    lexer->tokenize();
+    auto *parser = new Parser(filename);
+    parser->parse();
 
     return 0;
 }

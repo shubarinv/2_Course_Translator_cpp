@@ -16,8 +16,6 @@ class Token {
 public:
     enum class tokenType {
         Keyword,
-        MathOp,
-        Bracket,
         Logic,
         Comparison,
         Semicolon,
@@ -29,7 +27,11 @@ public:
         String,
         Colon,
         COMMA,
-        DOT
+        DOT,
+        LPAR,
+        LBRACE,
+        RPAR,
+        RBRACE, MathDiv, MathMult, MathMinus, MathPlus
     };
 private:
     tokenType type = tokenType::Undefined;
@@ -72,10 +74,10 @@ public:
         else if (str == ":=") return tokenType::Assignment;
         else if (str == "==") return tokenType::Comparison;
 
-        else if (str == "+") return tokenType::MathOp;
-        else if (str == "-") return tokenType::MathOp;
-        else if (str == "*") return tokenType::MathOp;
-        else if (str == "/") return tokenType::MathOp;
+        else if (str == "+") return tokenType::MathPlus;
+        else if (str == "-") return tokenType::MathMinus;
+        else if (str == "*") return tokenType::MathMult;
+        else if (str == "/") return tokenType::MathDiv;
 
         else if (str == "if") return tokenType::Keyword;
         else if (str == "then") return tokenType::Keyword;
@@ -95,10 +97,10 @@ public:
         else if (str == "write") return tokenType::Keyword;
         else if (str == "read") return tokenType::Keyword;
 
-        else if (str == "(") return tokenType::Bracket;
-        else if (str == ")") return tokenType::Bracket;
-        else if (str == "{") return tokenType::Bracket;
-        else if (str == "}") return tokenType::Bracket;
+        else if (str == "(") return tokenType::LPAR;
+        else if (str == ")") return tokenType::RPAR;
+        else if (str == "{") return tokenType::LBRACE;
+        else if (str == "}") return tokenType::RBRACE;
         else if (str == ";") return tokenType::Semicolon;
         else if (str == ":") return tokenType::Colon;
         else if (str == ",") return tokenType::COMMA;
@@ -135,10 +137,6 @@ public:
                 return "Comparison";
             case tokenType::Keyword:
                 return "Keyword";
-            case tokenType::MathOp:
-                return "MathOp";
-            case tokenType::Bracket:
-                return "Bracket";
             case tokenType::Logic:
                 return "Logic";
             case tokenType::Semicolon:
@@ -159,6 +157,22 @@ public:
                 return "COMMA";
             case tokenType::DOT:
                 return "DOT";
+            case tokenType::LPAR:
+                return "LPAR";
+            case tokenType::LBRACE:
+                return "LBRACE";
+            case tokenType::RPAR:
+                return "RPAR";
+            case tokenType::RBRACE:
+                return "RBRACE";
+            case tokenType::MathDiv:
+                return "MathDiv";
+            case tokenType::MathMult:
+                return "MathMult";
+            case tokenType::MathMinus:
+                return "MathMinus";
+            case tokenType::MathPlus:
+                return "MathPlus";
         }
         return "ERROR";
     }
