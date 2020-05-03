@@ -99,6 +99,13 @@ public:
                     tokens.emplace(lexeme);
                     lexeme = "";
                 }
+            } else if (Token::determineTokenType(getString(program[i])) == Token::tokenType::MathPlus ||
+                       Token::determineTokenType(getString(program[i])) == Token::tokenType::MathMinus) {
+                if (!lexeme.empty()) {
+                    tokens.emplace(lexeme);
+                    lexeme = "";
+                }
+                tokens.emplace(getString(program[i]));
             } else if (Token::determineTokenType(getString(program[i])) != Token::tokenType::Undefined &&
                        Token::determineTokenType(getString(program[i])) != Token::tokenType::Id &&
                        Token::determineTokenType(getString(program[i])) != Token::tokenType::Num) {
@@ -106,8 +113,7 @@ public:
                 if (Token::determineTokenType(getString(program[i])) == Token::tokenType::DOT &&
                     Token::determineTokenType(getString(program[i + 1])) == Token::tokenType::Num) {
                     lexeme += program[i];
-                }
-                else {
+                } else {
                     if (!lexeme.empty()) {
                         tokens.emplace(lexeme);
                         lexeme = "";
