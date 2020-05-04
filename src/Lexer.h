@@ -99,6 +99,9 @@ public:
                     tokens.emplace(lexeme);
                     lexeme = "";
                 }
+            } else if (Token::determineTokenType(lexeme) == Token::tokenType::Keyword) {
+                tokens.emplace(lexeme);
+                lexeme = "";
             } else if (Token::determineTokenType(getString(program[i])) == Token::tokenType::MathPlus ||
                        Token::determineTokenType(getString(program[i])) == Token::tokenType::MathMinus) {
                 if (!lexeme.empty()) {
