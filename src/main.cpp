@@ -8,6 +8,7 @@
 using namespace boost;
 
 int main() {
+    std::cout<<"Please enter name of the file you want to compile(should end with .dpr): "<<std::endl;
     std::string filename="delphiTestFile1.dpr";
     std::cin >> filename;
     // Код находящийся ниже проверяет наличие указанного файла и его расширение
