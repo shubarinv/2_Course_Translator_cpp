@@ -26,5 +26,6 @@ int main() {
     auto *parser = new Parser(filename);
     parser->parse();
 
+    std::system("pause");
     return 0;
 }
