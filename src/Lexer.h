@@ -137,6 +137,7 @@ public:
                 lexeme += program[i];
             }
         }
+        printToFile();
     }
 
     void printToFile() {

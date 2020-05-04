@@ -9,7 +9,7 @@ using namespace boost;
 
 int main() {
     std::string filename="delphiTestFile1.dpr";
-    //std::cin >> filename;
+    std::cin >> filename;
     // Код находящийся ниже проверяет наличие указанного файла и его расширение
 
     std::string requiredFileExtension = ".dpr";
