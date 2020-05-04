@@ -31,7 +31,7 @@ public:
         LPAR,
         LBRACE,
         RPAR,
-        RBRACE, MathDiv, MathMult, MathMinus, MathPlus
+        RBRACE, MathDiv, MathMult, MathMinus, MathPlus, IF_Keyword,
     };
 private:
     tokenType type = tokenType::Undefined;
@@ -79,7 +79,7 @@ public:
         else if (str == "*") return tokenType::MathMult;
         else if (str == "/") return tokenType::MathDiv;
 
-        else if (str == "if") return tokenType::Keyword;
+        else if (str == "if") return tokenType::IF_Keyword;
         else if (str == "then") return tokenType::Keyword;
         else if (str == "else") return tokenType::Keyword;
         else if (str == "for") return tokenType::Keyword;

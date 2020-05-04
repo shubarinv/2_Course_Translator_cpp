@@ -14,6 +14,9 @@ public:
     enum class nodeType {
         START,
         EXPR,
+        STATEMENT,
+        IF,
+        ELSE,
 
         CONST, // Число
         ADD,  // Сложение
@@ -28,17 +31,14 @@ public:
     Node* op3;
     Node* op4;
 
-    Node(nodeType _type,std::string _value="",Node* _op1=nullptr,Node* _op2=nullptr,Node* _op3=nullptr,Node* _op4=nullptr){
-        type=_type;
-        value=std::move(_value);
-        op1=_op1;
-        op2=_op2;
-        op3=_op3;
-        op4=_op4;
+    explicit Node(nodeType _type,std::string _value="",Node* _op1=nullptr,Node* _op2=nullptr,Node* _op3=nullptr,Node* _op4=nullptr) {
+        type = _type;
+        value = std::move(_value);
+        op1 = _op1;
+        op2 = _op2;
+        op3 = _op3;
+        op4 = _op4;
     }
 
-
-
 };
-
 #endif //SPO_COMPILER_NODE_HPP
