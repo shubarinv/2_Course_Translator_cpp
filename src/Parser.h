@@ -103,7 +103,7 @@ public:
         node->op1 = simpleExpression();
         node->op2 = relOp();
         if (node->op2 == nullptr) {
-            return node;
+            return node->op1;
         }
         node->op3 = simpleExpression();
         node = new Node(node->op2->type, node->op2->value, node->op1, node->op3);
@@ -194,7 +194,7 @@ public:
         node->op1 = factor();
         node->op2 = multOp();
         if (node->op2 == nullptr) {
-            return node;
+            return node->op1;
         }
         node->op3 = factor();
         node = new binOpNode(node->op1, node->op2->value, node->op3);
@@ -217,7 +217,7 @@ public:
             node->op1 = term();
             node->op2 = addOp();
             if (node->op2 == nullptr) {
-                return node;
+                return node->op1;
             }
             node->op3 = term();
             node = new Node(node->op2->type, node->op2->value, node->op1, node->op3);
@@ -227,7 +227,7 @@ public:
 
             node->op3 = addOp();
             if (node->op3 == nullptr) {
-                return node;
+                return node->op2;
             }
             node->op4 = term();
             return node;
@@ -267,7 +267,6 @@ public:
 
     void parse() {
         lexer->tokenize();
-        lexer->printAllTokens();
         Node *node = statement();
         printRecursive(node, 0);
     }

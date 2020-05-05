@@ -23,7 +23,6 @@ int main() {
     }
 
     auto *parser = new Parser(filename);
-    parser->parse();
 
     return 0;
 }
