@@ -31,6 +31,8 @@ public:
         TERM,
         RESERVED,
         COMP,
+        VARDECL,
+        VARTYPE,
     };
     std::string value;
     nodeType type;
@@ -74,6 +76,16 @@ public:
 class ParenNode : public Node {
 public:
     explicit ParenNode(std::string paren) : Node(Node::nodeType::PAR, std::move(paren)) {}
+};
+
+class VarList:public Node{
+public:
+    VarList() : Node(Node::nodeType::VARDECL) {}
+    std::list<Node*>varList{};
+
+     std::list<Node *> *getVarList() {
+        return &varList;
+    }
 };
 
 #endif //SPO_COMPILER_NODE_HPP
