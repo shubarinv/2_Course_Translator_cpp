@@ -96,6 +96,9 @@ public:
         else if (str == "writeln") return tokenType::Keyword;
         else if (str == "write") return tokenType::Keyword;
         else if (str == "read") return tokenType::Keyword;
+        else if (str == "in") return tokenType::Keyword;
+        else if (str == "as") return tokenType::Keyword;
+        else if (str == "is") return tokenType::Keyword;
 
         else if (str == "(") return tokenType::LPAR;
         else if (str == ")") return tokenType::RPAR;
