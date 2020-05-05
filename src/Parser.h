@@ -4,8 +4,6 @@
 #ifndef SPO_COMPILER_PARSER_H
 #define SPO_COMPILER_PARSER_H
 
-
-#include <dbghelp.h>
 #include "Lexer.h"
 #include "exceptions.cpp"
 #include "Node.hpp"
@@ -18,14 +16,18 @@ private:
 public:
     explicit Parser(const std::string &_filename) {
         lexer = new Lexer(_filename);
-        throw NotImplementedException("Not implemented yet");
+        parse();
     }
 
     void expect(Token::tokenType tokenType) {
         if (lexer->getCurrentToken()->getType() == tokenType) {
             lexer->nextToken();
         } else {
-            throw NotImplementedException("SyntaxException");
+            std::string error = "Expected token of type: ";
+            error += Token::typeToString(tokenType);
+            error += ", but got: ";
+            error += Token::typeToString(lexer->getCurrentToken()->getType());
+            throw ParsingError(error);
         }
     }
 
@@ -37,6 +39,33 @@ public:
         /*
          *  SimpleExpression [RelOp SimpleExpression]...
          */
+        Node *node = new Node(Node::nodeType::EXPR);
+        node->op1 = simpleExpression();
+        node->op2 = relOp();
+        if (node->op2 == nullptr) {
+            return node;
+        }
+        node->op3 = simpleExpression();
+        node = new Node(node->op2->type, node->op2->value, node->op1, node->op3);
+        return node;
+    }
+
+    Node *relOp() {
+        /*
+         *  -> '>'
+         *  -> '<'
+         *  -> '<='
+         *  -> '>='
+         *  -> '<>'
+         *  -> IN
+         *  -> IS
+         *  -> AS
+         */
+        Node *node;
+        if (lexer->getCurrentToken()->getType() == Token::tokenType::Comparison) {
+            node = new Node(Node::nodeType::COMP, lexer->getCurrentToken()->getText());
+            return node;
+        }
         return nullptr;
     }
 
@@ -62,69 +91,222 @@ public:
             case Token::tokenType::LPAR: ///< factor() -> '(' Expression ')'
                 expect(Token::tokenType::LPAR);
                 node = new Node(Node::nodeType::FACTOR);
-                node->op1 = new ParenNode(")");
+                node->op1 = new ParenNode("(");
                 node->op2 = expr();
                 expect(Token::tokenType::RPAR);
-                node->op3 = expr();
+                node->op3 = new ParenNode(")");
                 return node;
             default:
                 throw ParsingError(
                         "ParsingError: was expecting a Left_Paren|Number|String, but got " +
-                        lexer->getCurrentToken()->getText() + " , which is" +
+                        lexer->getCurrentToken()->getText() + " , which is " +
                         Token::typeToString(lexer->getCurrentToken()->getType()));
         }
     }
 
     Node *multOp() {
+        Node *node;
         /*
              * -> '*'
              * -> '/'
-             * -> DIV
-             * -> MOD
-             * -> AND
+             * -> DIV  // not implemented
+             * -> MOD  // not implemented
+             * -> AND  // not implemented
          */
+        switch (lexer->getCurrentToken()->getType()) {
+            case Token::tokenType::MathMult:
+                node = new Node(Node::nodeType::MUL, "*");
+                lexer->nextToken();
+                return node;
+            case Token::tokenType::MathDiv:
+                node = new Node(Node::nodeType::DIV, "/");
+                lexer->nextToken();
+                return node;
+        }
         return nullptr;
     }
 
     Node *term() {
         /*
-           * Factor (MulOp Factor)*
+           * Factor [MulOp Factor]
         */
-        return nullptr;
+        Node *node = new Node(Node::nodeType::TERM);
+        node->op1 = factor();
+        node->op2 = multOp();
+        if (node->op2 == nullptr) {
+            return node;
+        }
+        node->op3 = factor();
+        node = new binOpNode(node->op1, node->op2->value, node->op3);
+        return node;
     }
 
     Node *simpleExpression() {
         /*
-           * SimpleExpression -> Term (AddOp Term)*
+           * SimpleExpression -> ['+' | '-'] Term [AddOp Term]
          */
-        return nullptr;
+        Node *node = new Node(Node::nodeType::EXPR);
+        if (lexer->getCurrentToken()->getType() == Token::tokenType::MathPlus) {
+            node->op1 = new Node(Node::nodeType::ADD, "+");
+            lexer->nextToken();
+        } else if (lexer->getCurrentToken()->getType() == Token::tokenType::MathMinus) {
+            node->op1 = new Node(Node::nodeType::SUB, "-");
+            lexer->nextToken();
+        }
+        if (node->op1 == nullptr) {
+            node->op1 = term();
+            node->op2 = addOp();
+            if (node->op2 == nullptr) {
+                return node;
+            }
+            node->op3 = term();
+            node = new Node(node->op2->type, node->op2->value, node->op1, node->op3);
+            return node;
+        } else {
+            node->op2 = term();
+
+            node->op3 = addOp();
+            if (node->op3 == nullptr) {
+                return node;
+            }
+            node->op4 = term();
+            return node;
+        }
     }
 
     Node *statement() {
         /*
-         * -> LabelId ':' [SimpleStatement]
-         * SimpleStatement
+         * [LabelId ':'] [SimpleStatement | StructStmt]
          */
-        return nullptr;
+        /* [LabelId ':'] not implemented*/
+        /* StructStmt not implemented*/
+
+        return simpleExpression();
     }
 
     Node *addOp() {
         /*
              * -> '+'
              * -> '-'
-             * -> OR
-             * -> XOR
+             * -> OR  // not implemented
+             * -> XOR // not implemented
         */
+        Node *node;
+        switch (lexer->getCurrentToken()->getType()) {
+            case Token::tokenType::MathPlus:
+                node = new Node(Node::nodeType::ADD, "+");
+                lexer->nextToken();
+                return node;
+            case Token::tokenType::MathMinus:
+                node = new Node(Node::nodeType::SUB, "-");
+                lexer->nextToken();
+                return node;
+        }
         return nullptr;
-    }
-
-    void evaluate() {
-        throw NotImplementedException("eval not implemented");
     }
 
     void parse() {
         lexer->tokenize();
+        lexer->printAllTokens();
+        Node *node = statement();
+        printRecursive(node, 0);
+    }
 
+
+    void printRecursive(Node *currentNode, size_t level) {
+        using namespace std;
+        // если узел не существует, то просто выходим из функции
+        if (currentNode == nullptr)
+            return;
+
+
+        for (int i = 0; i < level; ++i) {
+            // выводим level раз отступ в два пробела
+            cout << "|  ";
+        }
+
+        // выводим обозначение узла
+        cout << "+-";
+
+        // в зависимости от типа узла
+        // выводим нужное
+        switch (currentNode->type) {
+            case Node::nodeType::START:
+                cout << "START ";
+                break;
+            case Node::nodeType::EXPR:
+                cout << "EXPR ";
+                break;
+            case Node::nodeType::CONST:
+                cout << "CONST ";
+                // так как имеет значение, то выводим его в скобках
+                cout << "(" << currentNode->value << ")";
+                break;
+            case Node::nodeType::ADD:
+                cout << "ADD ";
+                break;
+            case Node::nodeType::SUB:
+                cout << "SUB ";
+                break;
+            case Node::nodeType::MUL:
+                cout << "MUL ";
+                break;
+            case Node::nodeType::DIV:
+                cout << "DIV ";
+                break;
+            case Node::nodeType::STATEMENT:
+                cout << "STATEMENT ";
+                break;
+            case Node::nodeType::IF:
+                cout << "IF ";
+                break;
+            case Node::nodeType::ELSE:
+                cout << "ELSE ";
+                break;
+            case Node::nodeType::VAR:
+                cout << "VAR ";
+                break;
+            case Node::nodeType::BINOP:
+                cout << "BINOP ";
+                cout << "(" << currentNode->value << ")";
+                break;
+            case Node::nodeType::STR:
+                cout << "STR ";
+                break;
+            case Node::nodeType::FACTOR:
+                cout << "FACTOR ";
+                break;
+            case Node::nodeType::PAR:
+                cout << "PAR";
+                cout << " ('" << currentNode->value << "')";
+                break;
+            case Node::nodeType::TERM:
+                cout << "TERM ";
+                break;
+            case Node::nodeType::RESERVED:
+                cout << "RESERVED ";
+                break;
+        }
+
+        cout << endl;
+
+        // т.к рекурсивная
+        printRecursive(currentNode->op1, level + 1);
+        printRecursive(currentNode->op2, level + 1);
+        printRecursive(currentNode->op3, level + 1);
+        printRecursive(currentNode->op4, level + 1);
+    }
+
+    void recursiveTraversal(Node *currentNode) {
+        // если текущая нода ноль, то делать с ней ничего нельзя
+        // так что выходим из функции
+        if (currentNode == nullptr)
+            return;
+
+        recursiveTraversal(currentNode->op1);
+        recursiveTraversal(currentNode->op2);
+        recursiveTraversal(currentNode->op3);
+        recursiveTraversal(currentNode->op4);
     }
 
     ~ Parser() {

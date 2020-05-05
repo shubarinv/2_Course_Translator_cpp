@@ -69,7 +69,7 @@ private:
     }
 
 public:
-     explicit Lexer(const std::string &_filename) {
+    explicit Lexer(const std::string &_filename) {
         loadFile(_filename);
     }
 
@@ -97,6 +97,9 @@ public:
                     tokens.emplace(lexeme);
                     lexeme = "";
                 }
+            } else if (Token::determineTokenType(lexeme) == Token::tokenType::Keyword) {
+                tokens.emplace(lexeme);
+                lexeme = "";
             } else if (Token::determineTokenType(getString(program[i])) == Token::tokenType::MathPlus ||
                        Token::determineTokenType(getString(program[i])) == Token::tokenType::MathMinus) {
                 if (!lexeme.empty()) {
@@ -134,6 +137,10 @@ public:
             } else if (program[i] != ' ' && program[i] != '\t' && program[i] != '\n' && program[i] != '\0') {
                 lexeme += program[i];
             }
+        }
+        if (!lexeme.empty()) {
+            tokens.emplace(lexeme);
+            lexeme = "";
         }
     }
 
