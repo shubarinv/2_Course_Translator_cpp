@@ -23,24 +23,27 @@ public:
         ADD,  // Сложение
         SUB,  // Вычитание
         MUL, // Умножение
-    DIV,   // Деление
-    BINOP,
-    STR,
-    FACTOR,
-    PAR,
-    TERM,
-    RESERVED,
-    COMP,
-    VARDECL,
-    VARTYPE,
-    DECL,
-  };
-  std::string value;
-  nodeType type;
+        DIV,   // Деление
+        BINOP,
+        STR,
+        FACTOR,
+        PAR,
+        TERM,
+        RESERVED,
+        COMP,
+        VARDECL,
+        VARTYPE,
+        DECL,
+        VARLIST,
+        DESIGNATOR,
+    };
+    std::string value;
+    nodeType type;
     Node *op1;
     Node *op2;
     Node *op3;
     Node *op4;
+    Node *next{};
 
     explicit Node(nodeType _type, std::string _value = " ", Node *_op1 = nullptr, Node *_op2 = nullptr,
                   Node *_op3 = nullptr, Node *_op4 = nullptr) {
@@ -79,14 +82,14 @@ public:
     explicit ParenNode(std::string paren) : Node(Node::nodeType::PAR, std::move(paren)) {}
 };
 
-class VarList:public Node{
+class VarList : public Node {
 public:
-    VarList() : Node(Node::nodeType::VARDECL) {}
-    std::list<Node*>varList{};
+    VarList() : Node(Node::nodeType::VARLIST) {}
+};
 
-     std::list<Node *> *getVarList() {
-        return &varList;
-    }
+class ifNode : public Node {
+public:
+    ifNode(Node *condition, Node *action, Node *elseStatement) : Node(Node::nodeType::IF,"",condition, action, elseStatement) {}
 };
 
 #endif //SPO_COMPILER_NODE_HPP
