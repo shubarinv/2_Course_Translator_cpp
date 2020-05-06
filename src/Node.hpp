@@ -23,19 +23,20 @@ public:
         ADD,  // Сложение
         SUB,  // Вычитание
         MUL, // Умножение
-        DIV, // Деление
-        BINOP,
-        STR,
-        FACTOR,
-        PAR,
-        TERM,
-        RESERVED,
-        COMP,
-        VARDECL,
-        VARTYPE,
-    };
-    std::string value;
-    nodeType type;
+    DIV,   // Деление
+    BINOP,
+    STR,
+    FACTOR,
+    PAR,
+    TERM,
+    RESERVED,
+    COMP,
+    VARDECL,
+    VARTYPE,
+    DECL,
+  };
+  std::string value;
+  nodeType type;
     Node *op1;
     Node *op2;
     Node *op3;
