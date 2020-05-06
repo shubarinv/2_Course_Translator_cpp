@@ -18,7 +18,7 @@ public:
         IF,
         ELSE,
         VAR,
-
+        NODE,
         CONST, // Число
         ADD,  // Сложение
         SUB,  // Вычитание
@@ -43,7 +43,7 @@ public:
     Node *op2;
     Node *op3;
     Node *op4;
-    Node *next{};
+    std::list<Node *>list;
 
     explicit Node(nodeType _type, std::string _value = " ", Node *_op1 = nullptr, Node *_op2 = nullptr,
                   Node *_op3 = nullptr, Node *_op4 = nullptr) {
