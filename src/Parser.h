@@ -129,20 +129,23 @@ public:
         recursiveTraversal(currentNode->op3);
         recursiveTraversal(currentNode->op4);
     }
-    Node*Goal(){
+
+    Node *Goal() {
         /*
          * Goal -> (Program | Package  | Library  | Unit)
          */
         throw NotImplementedException("Goal()");
     }
-    Node*Program(){
+
+    Node *Program() {
         /*
          * Program -> [PROGRAM Ident ['(' IdentList ')'] ';']
                       ProgramBlock '.'
          */
         throw NotImplementedException("Program()");
     }
-    Node* Unit(){
+
+    Node *Unit() {
         /*
          * Unit -> UNIT Ident ';'
                    InterfaceSection
@@ -151,6 +154,7 @@ public:
          */
         throw NotImplementedException("Unit()");
     }
+
     Node *Package() {
         /*
          * Package -> PACKAGE Ident ';'

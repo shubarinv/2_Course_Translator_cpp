@@ -43,7 +43,7 @@ public:
     Node *op2;
     Node *op3;
     Node *op4;
-    std::list<Node *>list;
+    std::list<Node *> list;
 
     explicit Node(nodeType _type, std::string _value = " ", Node *_op1 = nullptr, Node *_op2 = nullptr,
                   Node *_op3 = nullptr, Node *_op4 = nullptr) {
@@ -89,7 +89,8 @@ public:
 
 class ifNode : public Node {
 public:
-    ifNode(Node *condition, Node *action, Node *elseStatement) : Node(Node::nodeType::IF,"",condition, action, elseStatement) {}
+    ifNode(Node *condition, Node *action, Node *elseStatement) : Node(Node::nodeType::IF, "", condition, action,
+                                                                      elseStatement) {}
 };
 
 #endif //SPO_COMPILER_NODE_HPP
