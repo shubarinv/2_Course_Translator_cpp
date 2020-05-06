@@ -46,7 +46,7 @@ public:
             return node->op1;
         }
         node->op3 = simpleExpression();
-        node = new Node(node->op2->type, node->op2->value, node->op1, node->op3);
+        node = new binOpNode(node->op1, node->op2->value,node->op3);
         return node;
     }
 
@@ -136,7 +136,7 @@ public:
         if (node->op2 == nullptr) {
             return node->op1;
         }
-        node->op3 = factor();
+        node->op3 = term();
         node = new binOpNode(node->op1, node->op2->value, node->op3);
         return node;
     }
@@ -159,17 +159,16 @@ public:
             if (node->op2 == nullptr) {
                 return node->op1;
             }
-            node->op3 = term();
-            node = new Node(node->op2->type, node->op2->value, node->op1, node->op3);
+            node->op3 = simpleExpression();
+            node = new binOpNode(node->op1, node->op2->value,  node->op3);
             return node;
         } else {
             node->op2 = term();
-
             node->op3 = addOp();
             if (node->op3 == nullptr) {
                 return node->op2;
             }
-            node->op4 = term();
+            node->op4 = simpleExpression();
             return node;
         }
     }
