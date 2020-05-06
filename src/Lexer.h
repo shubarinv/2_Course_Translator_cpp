@@ -148,7 +148,7 @@ public:
         using namespace std;
         ofstream out("output.txt");
         out << "# Этот файл используется только для демонстрации работоспособности лексического анализатора\n";
-        out << "# lexer.printToFiles SHOULD BE REMOVED\n";
+        out << "# lexer.printToFile SHOULD BE REMOVED\n";
         int i = 0;
         std::queue<Token> tmp = tokens;
         while (!tmp.empty()) {

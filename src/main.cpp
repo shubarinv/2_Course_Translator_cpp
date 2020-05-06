@@ -8,8 +8,10 @@
 using namespace boost;
 
 int main() {
-    std::string filename = "delphiTestFile1.dpr";
-    //std::cin >> filename;
+
+    std::cout<<"Please enter name of the file you want to compile(should end with .dpr): "<<std::endl;
+    std::string filename="delphiTestFile1.dpr";
+    std::cin >> filename;
     // Код находящийся ниже проверяет наличие указанного файла и его расширение
 
     std::string requiredFileExtension = ".dpr";
@@ -24,5 +26,6 @@ int main() {
 
     auto *parser = new Parser(filename);
 
+    std::system("pause");
     return 0;
 }
