@@ -2,6 +2,7 @@
 // Created by vhundef on 27.04.2020.
 //
 #include <stdexcept>
+#include <string>
 
 class NotImplementedException : public std::logic_error
 {
