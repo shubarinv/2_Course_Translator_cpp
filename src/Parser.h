@@ -31,68 +31,8 @@ public:
         }
     }
 
-    Node *identList() {
-        Node *node = new VarList();
-        node->op1 = ident();
-        Node *prevNode = node->op1;
-        while (lexer->getCurrentToken()->getType() == Token::tokenType::COMMA) {
-            prevNode->op1 = ident();
-            prevNode = prevNode->op1;
-        }
-        return node;
-    }
-
-    Node *ident() {
-        if (lexer->getCurrentToken()->getType() == Token::tokenType::Id) {
-            Node *node = new VarNode(lexer->getCurrentToken()->getText());
-            lexer->nextToken();
-            return node;
-        } else {
-            throw ParsingError("Expected identifier");
-        }
-    }
-
-    Node *Type() {
-        /*
-         * -> TypeId
-         * -> SimpleType      //Not implemented
-         * -> StrucType       //Not implemented
-         * -> PointerType     //Not implemented
-         * -> StringType      //Not implemented
-         * -> ProcedureType   //Not implemented
-         * -> VariantType     //Not implemented
-         * -> ClassRefType    //Not implemented
-         */
-        return typeId();
-    }
-
-    Node *typeId() {
-        /*
-         * [UnitId '.'] <type-identifier>
-         * [UnitId '.'] //Not implemented
-         */
-        if (lexer->getCurrentToken()->getType() == Token::tokenType::Id) {
-            Node *node = new Node(Node::nodeType::VARTYPE, lexer->getCurrentToken()->getText());
-            lexer->nextToken();
-            return node;
-        }
-        throw ParsingError("Expected TypeID");
-    }
-
-    Node *varDecl() {
-        /*
-         * IdentList ':' Type [(ABSOLUTE (Ident | ConstExpr)) | '=' ConstExpr]
-         */
-        Node *node = new Node(Node::nodeType::VARDECL);
-        node->op1 = identList();
-        expect(Token::tokenType::Colon);
-        node->op2 = Type();
-        return nullptr;
-    }
-
     Node *program() {
-        Node *node = new Node(Node::nodeType::START);
-        return node;
+        return nullptr;
     }
 
     Node *expr() {
@@ -267,6 +207,7 @@ public:
 
     void parse() {
         lexer->tokenize();
+        lexer->printAllTokens();
         Node *node = statement();
         printRecursive(node, 0);
     }
@@ -344,12 +285,6 @@ public:
                 break;
             case Node::nodeType::RESERVED:
                 cout << "RESERVED ";
-                break;
-            case Node::nodeType::COMP:
-                cout << "COMP ";
-                break;
-            case Node::nodeType::VARDECL:
-                cout << "VARDECL ";
                 break;
         }
 

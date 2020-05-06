@@ -32,6 +32,9 @@ public:
         LBRACE,
         RPAR,
         RBRACE, MathDiv, MathMult, MathMinus, MathPlus, IF_Keyword,
+        THEN_Keyword,
+        ELSE_Keyword,
+        LESS,
     };
 private:
     tokenType type = tokenType::Undefined;
@@ -80,8 +83,8 @@ public:
         else if (str == "/") return tokenType::MathDiv;
 
         else if (str == "if") return tokenType::IF_Keyword;
-        else if (str == "then") return tokenType::Keyword;
-        else if (str == "else") return tokenType::Keyword;
+        else if (str == "then") return tokenType::THEN_Keyword;
+        else if (str == "else") return tokenType::ELSE_Keyword;
         else if (str == "for") return tokenType::Keyword;
         else if (str == "while") return tokenType::Keyword;
         else if (str == "var") return tokenType::Keyword;
@@ -107,7 +110,7 @@ public:
         else if (str == ",") return tokenType::COMMA;
         else if (str == ".") return tokenType::DOT;
 
-        else if (str == ">") return tokenType::Comparison;
+        else if (str == ">") return tokenType::LESS;
         else if (str == "<") return tokenType::Comparison;
         else if (str == ">=") return tokenType::Comparison;
         else if (str == "<=") return tokenType::Comparison;
@@ -178,6 +181,17 @@ public:
                 return "MathMinus";
             case tokenType::MathPlus:
                 return "MathPlus";
+            case tokenType::IF_Keyword:
+                return "IF_Keyword";
+            case tokenType::THEN_Keyword:
+                return "THEN_Keyword";
+
+            case tokenType::ELSE_Keyword:
+                return "ELSE_Keyword";
+                break;
+            case tokenType::LESS:
+                return "LESS";
+                break;
         }
         return "ERROR";
     }
