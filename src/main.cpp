@@ -8,6 +8,7 @@
 using namespace boost;
 
 int main() {
+
     std::cout<<"Please enter name of the file you want to compile(should end with .dpr): "<<std::endl;
     std::string filename="delphiTestFile1.dpr";
     std::cin >> filename;
@@ -24,7 +25,6 @@ int main() {
     }
 
     auto *parser = new Parser(filename);
-    parser->parse();
 
     std::system("pause");
     return 0;

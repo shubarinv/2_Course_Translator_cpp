@@ -5,12 +5,11 @@
 #ifndef SPO_COMPILER_TOKEN_HPP
 #define SPO_COMPILER_TOKEN_HPP
 
+#include <algorithm>
+#include <boost/regex.hpp>
+#include <iostream>
 #include <string>
 #include <utility>
-#include <algorithm>
-#include <iostream>
-#include <boost/regex.hpp>
-
 
 class Token {
 public:
@@ -29,29 +28,40 @@ public:
         COMMA,
         DOT,
         LPAR,
+        EQUAL,
         LBRACE,
         RPAR,
-        RBRACE, MathDiv, MathMult, MathMinus, MathPlus
+        RBRACE,
+        MathDiv,
+        MathMult,
+        MathMinus,
+        MathPlus,
+        IF_Keyword,
+        THEN_Keyword,
+        ELSE_Keyword,
+        LESS,
+        RBRACKET,
+        LBRACKET,
     };
+
 private:
     tokenType type = tokenType::Undefined;
+
 public:
-    [[nodiscard]] tokenType getType() const {
-        return type;
-    }
+    [[nodiscard]] tokenType getType() const { return type; }
 
 private:
     std::string text;
+
 public:
-    [[nodiscard]] const std::string &getText() const {
-        return text;
-    }
+    [[nodiscard]] const std::string &getText() const { return text; }
 
 private:
-
     static bool isNumber(const std::string &str) {
         return !str.empty() &&
-               std::find_if(str.begin(), str.end(), [](unsigned char c) { return !std::isdigit(c); }) == str.end();
+               std::find_if(str.begin(), str.end(), [](unsigned char c) {
+                   return !std::isdigit(c);
+               }) == str.end();
     }
 
 public:
@@ -63,58 +73,110 @@ public:
         try { // checking if string is double
             double value = std::stod(str);
             return tokenType::Num;
+        } catch (std::exception &e) {
         }
-        catch (std::exception &e) {}
 
-        if ((str[0] == '\'' || str[0] == '\"') && str[str.size() - 1] == '\'' || str[str.size() - 1] == '\"')
+        if ((str[0] == '\'' || str[0] == '\"') && str[str.size() - 1] == '\'' ||
+            str[str.size() - 1] == '\"')
             return tokenType::String;
 
         if (isNumber(str))
             return tokenType::Num;
-        else if (str == ":=") return tokenType::Assignment;
-        else if (str == "==") return tokenType::Comparison;
+        else if (str == ":=")
+            return tokenType::Assignment;
+        else if (str == "==")
+            return tokenType::Comparison;
+        else if (str == "=")
+            return tokenType::EQUAL;
 
-        else if (str == "+") return tokenType::MathPlus;
-        else if (str == "-") return tokenType::MathMinus;
-        else if (str == "*") return tokenType::MathMult;
-        else if (str == "/") return tokenType::MathDiv;
+        else if (str == "+")
+            return tokenType::MathPlus;
+        else if (str == "-")
+            return tokenType::MathMinus;
+        else if (str == "*")
+            return tokenType::MathMult;
+        else if (str == "/")
+            return tokenType::MathDiv;
 
-        else if (str == "if") return tokenType::Keyword;
-        else if (str == "then") return tokenType::Keyword;
-        else if (str == "else") return tokenType::Keyword;
-        else if (str == "for") return tokenType::Keyword;
-        else if (str == "while") return tokenType::Keyword;
-        else if (str == "var") return tokenType::Keyword;
-        else if (str == "procedure") return tokenType::Keyword;
-        else if (str == "type") return tokenType::Keyword;
-        else if (str == "begin") return tokenType::Keyword;
-        else if (str == "end") return tokenType::Keyword;
-        else if (str == "downto") return tokenType::Keyword;
-        else if (str == "do") return tokenType::Keyword;
-        else if (str == "Continue") return tokenType::Keyword;
-        else if (str == "readln") return tokenType::Keyword;
-        else if (str == "writeln") return tokenType::Keyword;
-        else if (str == "write") return tokenType::Keyword;
-        else if (str == "read") return tokenType::Keyword;
+        else if (str == "if")
+            return tokenType::IF_Keyword;
+        else if (str == "then")
+            return tokenType::THEN_Keyword;
+        else if (str == "else")
+            return tokenType::ELSE_Keyword;
+        else if (str == "for")
+            return tokenType::Keyword;
+        else if (str == "while")
+            return tokenType::Keyword;
+        else if (str == "var")
+            return tokenType::Keyword;
+        else if (str == "procedure")
+            return tokenType::Keyword;
+        else if (str == "type")
+            return tokenType::Keyword;
+        else if (str == "begin")
+            return tokenType::Keyword;
+        else if (str == "end")
+            return tokenType::Keyword;
+        else if (str == "downto")
+            return tokenType::Keyword;
+        else if (str == "do")
+            return tokenType::Keyword;
+        else if (str == "Continue")
+            return tokenType::Keyword;
+        else if (str == "readln")
+            return tokenType::Keyword;
+        else if (str == "writeln")
+            return tokenType::Keyword;
+        else if (str == "write")
+            return tokenType::Keyword;
+        else if (str == "read")
+            return tokenType::Keyword;
 
-        else if (str == "(") return tokenType::LPAR;
-        else if (str == ")") return tokenType::RPAR;
-        else if (str == "{") return tokenType::LBRACE;
-        else if (str == "}") return tokenType::RBRACE;
-        else if (str == ";") return tokenType::Semicolon;
-        else if (str == ":") return tokenType::Colon;
-        else if (str == ",") return tokenType::COMMA;
-        else if (str == ".") return tokenType::DOT;
+        else if (str == "(")
+            return tokenType::LPAR;
+        else if (str == ")")
+            return tokenType::RPAR;
+        else if (str == "{")
+            return tokenType::LBRACE;
+        else if (str == "]")
+            return tokenType::RBRACKET;
+        else if (str == "[")
+            return tokenType::LBRACKET;
+        else if (str == "}")
+            return tokenType::RBRACE;
+        else if (str == ";")
+            return tokenType::Semicolon;
+        else if (str == ":")
+            return tokenType::Colon;
+        else if (str == ",")
+            return tokenType::COMMA;
+        else if (str == ".")
+            return tokenType::DOT;
 
-        else if (str == ">") return tokenType::Comparison;
-        else if (str == "<") return tokenType::Comparison;
-        else if (str == ">=") return tokenType::Comparison;
-        else if (str == "<=") return tokenType::Comparison;
+        else if (str == ">")
+            return tokenType::LESS;
+        else if (str == "<")
+            return tokenType::Comparison;
+        else if (str == ">=")
+            return tokenType::Comparison;
+        else if (str == "<=")
+            return tokenType::Comparison;
+        else if (str == "IN")
+            return tokenType::Comparison;
+        else if (str == "AS")
+            return tokenType::Comparison;
+        else if (str == "IS")
+            return tokenType::Comparison;
+        else if (str == "<>")
+            return tokenType::Comparison;
 
-
-        else if (str == "Integer") return tokenType::DataType;
-        else if (str == "LongInt") return tokenType::DataType;
-        else if (str == "Byte") return tokenType::DataType;
+        else if (str == "Integer")
+            return tokenType::DataType;
+        else if (str == "LongInt")
+            return tokenType::DataType;
+        else if (str == "Byte")
+            return tokenType::DataType;
 
         else if (boost::regex_match(str, what, IdRegex))
             return tokenType::Id;
@@ -123,7 +185,6 @@ public:
     }
 
 public:
-
     explicit Token(std::string _val) {
         text = std::move(_val);
         type = determineTokenType(text);
@@ -173,10 +234,19 @@ public:
                 return "MathMinus";
             case tokenType::MathPlus:
                 return "MathPlus";
+            case tokenType::IF_Keyword:
+                return "IF_Keyword";
+            case tokenType::THEN_Keyword:
+                return "THEN_Keyword";
+            case tokenType::ELSE_Keyword:
+                return "ELSE_Keyword";
+            case tokenType::LESS:
+                return "LESS";
+            case tokenType::EQUAL:
+                return "EQUAL";
         }
         return "ERROR";
     }
 };
 
-
-#endif //SPO_COMPILER_TOKEN_HPP
+#endif // SPO_COMPILER_TOKEN_HPP

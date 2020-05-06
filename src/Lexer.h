@@ -20,8 +20,6 @@ class Lexer {
 private:
     std::queue<Token> tokens;
     std::string program;
-    int currentTokenIndex = 0;
-    Token *currentToken{};
 public:
     void nextToken() {
         tokens.pop();
@@ -66,7 +64,7 @@ private:
         std::ifstream file(_filename);
         if (file.is_open()) {
             std::string fileContent;
-            program = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());;
+            program = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         }
     }
 
@@ -144,7 +142,6 @@ public:
             tokens.emplace(lexeme);
             lexeme = "";
         }
-        printToFile();
     }
 
     void printToFile() {
