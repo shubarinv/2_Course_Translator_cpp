@@ -135,6 +135,12 @@ class Parser {
 		break;
 	  case Node::nodeType::SUBRANGE_EXPR:cout << "SUBRANGE_EXPR ";
 		break;
+	  case Node::nodeType::INPUT: cout << "INPUT ";
+		break;
+	  case Node::nodeType::OUTPUT: cout << "OUTPUT ";
+		break;
+	  case Node::nodeType::FOR_LOOP: cout << "FOR_LOOP ";
+		break;
 	}
 
 	cout << endl;
@@ -938,6 +944,7 @@ class Parser {
 		expect(Token::tokenType::RPAR);
 		node->op3 = new ParenNode(")");
 		return node;
+	  default: return nullptr;
 	}
 	return nullptr;
   }
@@ -977,6 +984,7 @@ class Parser {
 	  case Token::tokenType::MathMinus:node = new Node(Node::nodeType::SUB, "-");
 		lexer->nextToken();
 		return node;
+	  default:return nullptr;
 	}
 	return nullptr;
   }
@@ -999,6 +1007,7 @@ class Parser {
 	  case Token::tokenType::MathDiv:node = new Node(Node::nodeType::DIV, "/");
 		lexer->nextToken();
 		return node;
+	  default: return nullptr;
 	}
 	return nullptr;
   }
