@@ -874,8 +874,9 @@ class Parser {
 	 * Expression -> SimpleExpression [RelOp SimpleExpression]...
 	 */
 	Node *node = new Node(Node::nodeType::EXPR);
-	node->op1 = SimpleExpression();
-	if (node->op1 == nullptr)return nullptr;
+	Node *tmp = SimpleExpression();
+	if (tmp == nullptr)return nullptr;
+	node->op1 = tmp;
 	node->op2 = RelOp();
 	if (node->op2 == nullptr) {
 	  return node->op1;
@@ -965,9 +966,10 @@ class Parser {
 		expect(Token::tokenType::RPAR);
 		node->op3 = new ParenNode(")");
 		return node;
-	  default: return nullptr;
+	  default:break;
 	}
-	return nullptr;
+	node = Designator();
+	return node;
   }
 
   Node *RelOp() {
@@ -1120,6 +1122,9 @@ class Parser {
 	while (node->list.back() != nullptr) {
 	  tmp = Statement();
 	  if (tmp == nullptr) {
+		if (node->list.size() == 1) {
+		  return node->list.front();
+		}
 		return node;
 	  }
 	  node->list.push_back(tmp);
@@ -1189,6 +1194,7 @@ class Parser {
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::Assignment) {
 	  lexer->nextToken();
 	  node->op2 = Expression();
+	  node = new binOpNode(node->op1, ":=", node->op2);
 	} else if (lexer->getCurrentToken()->getType() == Token::tokenType::LPAR) {
 	  lexer->nextToken();
 	  node->op2 = ExprList();
