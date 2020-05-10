@@ -27,7 +27,10 @@ class Lexer {
   }
 
  public:
-  void nextToken() { tokens.pop(); }
+  void nextToken() {
+	tokens.pop();
+	std::cout << "Current token: " << tokens.front().getText() << std::endl;
+  }
 
   Token *getCurrentToken() { return &tokens.front(); }
 
@@ -77,17 +80,10 @@ class Lexer {
 	using namespace std;
 	string lexeme;
 	for (int i = 0; i < program.size(); ++i) {
-	  if (Token::determineTokenType(lexeme) != Token::tokenType::Undefined &&
-		  Token::determineTokenType(lexeme) != Token::tokenType::Id &&
-		  Token::determineTokenType(lexeme) !=
-			  Token::tokenType::Num) { ///< if lexeme is known by Token
-		tokens.emplace(lexeme);
-		lexeme = "";
-	  } else if (program[i] == '\r' || program[i + 1] == '\t' || program[i + 1] == '\0') //игнорируем всякую ерунду
+	  if (program[i] == '\r' || program[i] == '\t' || program[i] == '\0') //игнорируем всякую ерунду
 		continue;
 	  else if (program[i] == '\n' || program[i] == ' ') { // если перенос строки или пробел добавляем лексему
-		if (!lexeme.empty() &&
-			Token::determineTokenType(lexeme) != Token::tokenType::Undefined) {
+		if (!lexeme.empty() && Token::determineTokenType(lexeme) != Token::tokenType::Undefined) {
 		  tokens.emplace(lexeme);
 		  lexeme = "";
 		}
@@ -102,6 +98,7 @@ class Lexer {
 			lexeme = "";
 		  }
 		  tokens.emplace(getString(program[i]) + getString(program[i + 1]));
+		  i++;
 		} else {
 		  if (!lexeme.empty()) {
 			tokens.emplace(lexeme);
@@ -126,6 +123,11 @@ class Lexer {
 		  tokens.emplace(lexeme);
 		  lexeme = "";
 		}
+	  } else if (Token::determineTokenType(lexeme) != Token::tokenType::Undefined &&
+		  Token::determineTokenType(lexeme) != Token::tokenType::Id &&
+		  Token::determineTokenType(lexeme) != Token::tokenType::Num) { ///< if lexeme is known by Token
+		tokens.emplace(lexeme);
+		lexeme = "";
 	  } else {
 		lexeme += getString(program[i]);
 	  }
