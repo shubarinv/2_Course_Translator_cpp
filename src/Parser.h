@@ -86,11 +86,13 @@ class Parser {
 	  case Node::nodeType::ELSE:cout << "ELSE ";
 		break;
 	  case Node::nodeType::VAR:cout << "VAR ";
+		cout << "(" << currentNode->value << ")";
 		break;
 	  case Node::nodeType::BINOP:cout << "BINOP ";
 		cout << "(" << currentNode->value << ")";
 		break;
 	  case Node::nodeType::STR:cout << "STR ";
+		cout << "(" << currentNode->value << ")";
 		break;
 	  case Node::nodeType::FACTOR:cout << "FACTOR ";
 		break;
@@ -105,13 +107,20 @@ class Parser {
 		break;
 	  case Node::nodeType::COMP:cout << "COMP";
 		break;
-	  case Node::nodeType::VARDECL:cout << "VARDECL";
+	  case Node::nodeType::VARDECL:cout << "VARDECL" << endl;
+		for (auto &node:currentNode->list) {
+		  printRecursive(node, level + 1);
+		}
 		break;
 	  case Node::nodeType::VARTYPE:cout << "VARTYPE";
+		cout << " ('" << currentNode->value << "')";
 		break;
 	  case Node::nodeType::DECL:cout << "DECL ";
 		break;
-	  case Node::nodeType::VARLIST:cout << "VARLIST ";
+	  case Node::nodeType::VARLIST:cout << "VARLIST " << endl;
+		for (auto &node:currentNode->list) {
+		  printRecursive(node, level + 1);
+		}
 		break;
 	  case Node::nodeType::DESIGNATOR:cout << "DESIGNATOR ";
 		break;
@@ -141,6 +150,12 @@ class Parser {
 		break;
 	  case Node::nodeType::FOR_LOOP: cout << "FOR_LOOP ";
 		break;
+	  case Node::nodeType::STATEMENT_LIST: {
+		cout << "STATEMENT_LIST " << endl;
+		for (auto &node:currentNode->list) {
+		  printRecursive(node, level + 1);
+		}
+	  }
 	}
 
 	cout << endl;
@@ -821,10 +836,12 @@ class Parser {
 	/*
 	 * VarSection -> VAR (VarDecl ';')...
 	 */
-	if (lexer->getCurrentToken()->getType() == Token::tokenType::VAR_Keyword) {
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::VAR_Keyword) { /// если есть ключевое слово var
 	  lexer->nextToken();
 	  Node *node = new Node(Node::nodeType::VARDECL);
-	  node->list.push_back(VarDecl());
+	  Node *tmp = VarDecl();
+	  if (tmp == nullptr)return nullptr; // если нету переменной
+	  node->list.push_back(tmp);
 	  expect(Token::tokenType::Semicolon);
 	  while (node->list.back() != nullptr) {
 		node->list.push_back(VarDecl());
@@ -858,6 +875,7 @@ class Parser {
 	 */
 	Node *node = new Node(Node::nodeType::EXPR);
 	node->op1 = SimpleExpression();
+	if (node->op1 == nullptr)return nullptr;
 	node->op2 = RelOp();
 	if (node->op2 == nullptr) {
 	  return node->op1;
@@ -871,22 +889,25 @@ class Parser {
 	/*
 	 * SimpleExpression -> ['+' | '-'] Term [AddOp Term]...
 	 */
-	Node *node = new Node(Node::nodeType::EXPR);
+	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::MathPlus) {
+	  node = new Node(Node::nodeType::EXPR);
 	  node->op1 = new Node(Node::nodeType::ADD, "+");
 	  lexer->nextToken();
 	} else if (lexer->getCurrentToken()->getType() == Token::tokenType::MathMinus) {
+	  node = new Node(Node::nodeType::EXPR);
 	  node->op1 = new Node(Node::nodeType::SUB, "-");
 	  lexer->nextToken();
 	}
-	if (node->op1 == nullptr) {
-	  node->op1 = Term();
-	  node->op2 = AddOp();
-	  if (node->op2 == nullptr) {
-		return node->op1;
+	if (node == nullptr) {
+	  node = Term();
+	  if (node == nullptr) { return nullptr; }
+	  node->op1 = AddOp();
+	  if (node->op1 == nullptr) {
+		return node;
 	  }
-	  node->op3 = SimpleExpression();
-	  node = new binOpNode(node->op1, node->op2->value, node->op3);
+	  node->op2 = SimpleExpression();
+	  node = new binOpNode(node, node->op1->value, node->op2);
 	  return node;
 	} else {
 	  node->op2 = Term();
@@ -978,15 +999,14 @@ class Parser {
 	 */
 	Node *node;
 	switch (lexer->getCurrentToken()->getType()) {
-	  case Token::tokenType::MathPlus:node = new Node(Node::nodeType::ADD, "+");
+	  case Token::tokenType::MathPlus: node = new Node(Node::nodeType::ADD, "+");
 		lexer->nextToken();
 		return node;
-	  case Token::tokenType::MathMinus:node = new Node(Node::nodeType::SUB, "-");
+	  case Token::tokenType::MathMinus: node = new Node(Node::nodeType::SUB, "-");
 		lexer->nextToken();
 		return node;
 	  default:return nullptr;
 	}
-	return nullptr;
   }
 
   Node *MulOp() {
@@ -1017,7 +1037,9 @@ class Parser {
 	 * Designator -> QualId ['.' Ident | '[' ExprList ']' | '^']...
 	 */
 	Node *node = new Node(Node::nodeType::DESIGNATOR);
-	node->op1 = QualId();
+	Node *tmp = QualId();
+	if (tmp == nullptr) { return nullptr; }
+	node->op1 = tmp;
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::DOT) {
 	  lexer->nextToken();
 	  node->op2 = new StringNode(".");
@@ -1029,6 +1051,7 @@ class Parser {
 	  expect(Token::tokenType::RBRACKET);
 	  node->op4 = new StringNode("]");
 	}
+	if (node->op2 == nullptr)return node->op1;
 	return node;
   }
 
@@ -1085,14 +1108,21 @@ class Parser {
 	/*
 	 * StmtList -> Statement/';'...
 	 */
-	Node *node = new Node(Node::nodeType::STATEMENT);
-	node->list.push_back(Statement());
-	if (lexer->getCurrentToken()->getType() != Token::tokenType::Semicolon) {
+	Node *node = new Node(Node::nodeType::STATEMENT_LIST);
+	Node *tmp = Statement();
+	if (tmp == nullptr) {
+	  return nullptr;
+	}
+	node->list.push_back(tmp);
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::Semicolon) {
 	  lexer->nextToken();
-	  return node;
 	}
 	while (node->list.back() != nullptr) {
-	  node->list.push_back(Statement());
+	  tmp = Statement();
+	  if (tmp == nullptr) {
+		return node;
+	  }
+	  node->list.push_back(tmp);
 	  if (node->list.back() != nullptr)
 		expect(Token::tokenType::Semicolon);
 	}
@@ -1194,8 +1224,8 @@ class Parser {
 	 */
 	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::BEGIN_Keyword) {
-	  node = new Node(Node::nodeType::STATEMENT);
 	  lexer->nextToken();
+	  node = new Node(Node::nodeType::STATEMENT);
 	  node->op1 = new StringNode("begin");
 	  node->op2 = StmtList();
 	  expect(Token::tokenType::END_Keyword);

@@ -38,18 +38,19 @@ public:
         PROG,
         UNIT,
         PROGRAM_BLOCK,
-        USES,
-        INTERFACE_SECTION,
-        BLOCK,
-        SECTION,
-        TYPE,
-        ARRAY_CONST,
-        SUBRANGE_EXPR,
-        INPUT,
-        OUTPUT,
-        FOR_LOOP,
-    };
-    std::string value;
+	  USES,
+	  INTERFACE_SECTION,
+	  BLOCK,
+	  SECTION,
+	  TYPE,
+	  ARRAY_CONST,
+	  SUBRANGE_EXPR,
+	  INPUT,
+	  OUTPUT,
+	  FOR_LOOP,
+	  STATEMENT_LIST,
+	};
+  std::string value;
     nodeType type;
     Node *op1;
     Node *op2;
