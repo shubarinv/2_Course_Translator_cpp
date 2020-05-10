@@ -83,6 +83,8 @@ public:
         ANSISTRING,
         WIDESTRING,
         UNIT_Keyword,
+        WRITE_Keyword,
+        READ_Keyword,
     };
 
 private:
@@ -168,13 +170,13 @@ public:
         else if (str == "Continue")
             return tokenType::CONTINUE_Keyword;
         else if (str == "readln")
-            return tokenType::Keyword;
+            return tokenType::READ_Keyword;
         else if (str == "writeln")
-            return tokenType::Keyword;
+            return tokenType::WRITE_Keyword;
         else if (str == "write")
-            return tokenType::Keyword;
+            return tokenType::WRITE_Keyword;
         else if (str == "read")
-            return tokenType::Keyword;
+            return tokenType::READ_Keyword;
 
         else if (str == "(")
             return tokenType::LPAR;
@@ -373,6 +375,10 @@ public:
                 return "WIDESTRING";
             case tokenType::UNIT_Keyword:
                 return "UNIT_Keyword";
+            case tokenType::WRITE_Keyword:
+                return "WRITE_Keyword";
+            case tokenType::READ_Keyword:
+                return "READ_Keyword";
         }
         return "ERROR";
     }

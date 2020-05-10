@@ -45,6 +45,9 @@ public:
         TYPE,
         ARRAY_CONST,
         SUBRANGE_EXPR,
+        INPUT,
+        OUTPUT,
+        FOR_LOOP,
     };
     std::string value;
     nodeType type;

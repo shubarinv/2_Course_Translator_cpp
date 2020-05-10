@@ -4,10 +4,13 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <iostream>
-
+// BOOST_ENABLE_ASSERT_DEBUG_HANDLER is defined for the whole project
+#include <stdexcept>    // std::logic_error
+#include <iostream>     // std::cerr
 using namespace boost;
 
 int main(int argc, char* argv[]) {
+
     auto sink_cout = std::make_shared<AixLog::SinkCout>(AixLog::Severity::trace, AixLog::Type::normal);
     auto sink_file = std::make_shared<AixLog::SinkFile>(AixLog::Severity::trace, AixLog::Type::all, "logfile.log");
     AixLog::Log::init({sink_cout, sink_file});

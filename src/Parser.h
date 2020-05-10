@@ -9,6 +9,8 @@
 #include "Node.hpp"
 #include "exceptions.cpp"
 #include "aixlog.hpp"
+#include <boost/stacktrace.hpp>
+
 
 
 class Parser {
@@ -35,13 +37,12 @@ public:
         if (lexer->getCurrentToken()->getType() == tokenType) {
             lexer->nextToken();
         } else {
-            LOG(ERROR)
-                    << "Parser.expect() Unexpected token! Required:" + Token::typeToString(tokenType) + ", but got: " +
-                       Token::typeToString(lexer->getCurrentToken()->getType());
+            LOG(ERROR) << "CRASH!!!";
             std::string error = "Expected token of type: ";
             error += Token::typeToString(tokenType);
             error += ", but got: ";
             error += Token::typeToString(lexer->getCurrentToken()->getType());
+            error += "(" + lexer->getCurrentToken()->getText() + ")";
             printRecursive(tree, 0);
             throw ParsingError(error);
         }
@@ -1097,7 +1098,7 @@ public:
         if (lexer->getCurrentToken()->getType() == Token::tokenType::DOT) {
             lexer->nextToken();
             node->op2 = new StringNode(".");
-            node->op3 = Ident();
+            node->op3 = Ident(true);
         } else if (lexer->getCurrentToken()->getType() == Token::tokenType::LBRACKET) {
             lexer->nextToken();
             node->op2 = new StringNode("[");
@@ -1146,9 +1147,15 @@ public:
          * Statement -> [LabelId ':'] [SimpleStatement | StructStmt]
          */
         LOG(INFO) << "Statement()\n";
-        Node *node = SimpleStatement();
+        Node *node = Write();
         if (node == nullptr) {
-            node = StructStmt();
+            node = Read();
+            if (node == nullptr) {
+                node = SimpleStatement();
+                if (node == nullptr) {
+                    node = StructStmt();
+                }
+            }
         }
         return node;
     }
@@ -1158,17 +1165,62 @@ public:
          * StmtList -> Statement/';'...
          */
         LOG(INFO) << "StmtList()\n";
-        Node *node = new Node(Node::nodeType::STATEMENT);;
-        node->list.push_back(Expression());
+        Node *node = new Node(Node::nodeType::STATEMENT);
+        node->list.push_back(Statement());
         if (lexer->getCurrentToken()->getType() != Token::tokenType::Semicolon) {
             lexer->nextToken();
             return node;
         }
         while (node->list.back() != nullptr) {
-            node->list.push_back(Expression());
+            node->list.push_back(Statement());
             if (node->list.back() != nullptr)
                 expect(Token::tokenType::Semicolon);
         }
+        return node;
+    }
+
+    Node *Read() {
+        /*
+         * Read -> '(' ident ')' ';'
+         */
+        LOG(INFO) << "Read()\n";
+        Node *node{nullptr};
+        if (lexer->getCurrentToken()->getType() == Token::tokenType::READ_Keyword) {
+            node= new Node(Node::nodeType::INPUT);
+            node->value = lexer->getCurrentToken()->getText();
+            lexer->nextToken();
+            expect(Token::tokenType::LPAR);
+            node->op1 = Ident();
+            expect(Token::tokenType::RPAR);
+        } else return nullptr;
+        return node;
+    }
+
+    Node *Write() {
+        /*
+         * Write -> '(' [ident|string] ')' ';'
+         * Write -> '(' [ident|string] ',' [ident|string] ')' ';'
+         */
+        LOG(INFO) << "Write()\n";
+        Node *node {nullptr};
+        if (lexer->getCurrentToken()->getType() == Token::tokenType::WRITE_Keyword) {
+            node =new Node(Node::nodeType::OUTPUT);
+            node->value = lexer->getCurrentToken()->getText();
+            lexer->nextToken();
+            expect(Token::tokenType::LPAR);
+            node->op1 = Ident(true);
+            if (node->op1 == nullptr) {
+                node->op1 = String();
+            }
+            if (node->op1 != nullptr && lexer->getCurrentToken()->getType() == Token::tokenType::COMMA) {
+                lexer->nextToken();
+                node->op2 = Ident(true);
+                if (node->op2 == nullptr) {
+                    node->op2 = String();
+                }
+            }
+            expect(Token::tokenType::RPAR);
+        } else return nullptr;
         return node;
     }
 
@@ -1180,11 +1232,13 @@ public:
                            -> GOTO LabelId
          */
         LOG(INFO) << "SimpleStatement()\n";
-        Node *node = new Node(Node::nodeType::STATEMENT);
-        node->op1 = Designator();
-        if (node->op1 == nullptr) {
+        Node *node = {nullptr};
+        Node *tmp = new Node(Node::nodeType::STATEMENT);
+        tmp->op1 = Designator();
+        if (tmp->op1 == nullptr) {
             return nullptr;
         }
+        node = new Node(Node::nodeType::STATEMENT, "", tmp->op1);
         if (lexer->getCurrentToken()->getType() == Token::tokenType::Assignment) {
             lexer->nextToken();
             node->op2 = Expression();
@@ -1223,8 +1277,9 @@ public:
          * CompoundStmt -> BEGIN StmtList END
          */
         LOG(INFO) << "CompoundStmt()\n";
-        Node *node = new Node(Node::nodeType::STATEMENT);
+        Node *node{nullptr};
         if (lexer->getCurrentToken()->getType() == Token::tokenType::BEGIN_Keyword) {
+            node = new Node(Node::nodeType::STATEMENT);
             lexer->nextToken();
             node->op1 = new StringNode("begin");
             node->op2 = StmtList();
@@ -1252,8 +1307,9 @@ public:
          * IfStmt -> IF Expression THEN Statement [ELSE Statement]
          */
         LOG(INFO) << "IfStmt()\n";
-        Node *node = new Node(Node::nodeType::IF);
+        Node *node = {nullptr};
         if (lexer->getCurrentToken()->getType() == Token::tokenType::IF_Keyword) {
+            node = new Node(Node::nodeType::IF);
             lexer->nextToken();
             node->op1 = Expression();
             expect(Token::tokenType::THEN_Keyword);
@@ -1271,6 +1327,7 @@ public:
         /*
          * CaseStmt -> CASE Expression OF CaseSelector/';'... [ELSE Statement] [';'] END
          */
+        return nullptr;
         throw NotImplementedException("CaseStmt()");
     }
 
@@ -1294,6 +1351,7 @@ public:
                     -> WhileStmt
                     -> ForStmt
          */
+        return ForStmt();
         throw NotImplementedException("LoopStmt()");
     }
 
@@ -1315,13 +1373,27 @@ public:
         /*
          * ForStmt -> FOR QualId ':=' Expression (TO | DOWNTO) Expression DO Statement
          */
-        throw NotImplementedException("ForStmt()");
+        Node*node{nullptr};
+        if(lexer->getCurrentToken()->getType()==Token::tokenType::FOR_Keyword){
+            node=new Node(Node::nodeType::FOR_LOOP);
+            node->value=lexer->getCurrentToken()->getText();
+            lexer->nextToken();
+            node->op1=QualId();
+            expect(Token::tokenType::Assignment);
+            node->op2=Expression();
+            node->op3=new StringNode(lexer->getCurrentToken()->getText());
+            node->op4=Expression();
+            expect(Token::tokenType::DO_Keyword);
+            node->list.push_back(Statement());
+        }
+        return node;
     }
 
     Node *WithStmt() {
         /*
          * WithStmt -> WITH IdentList DO Statement
          */
+        return nullptr;
         throw NotImplementedException("WithStmt()");
     }
 
@@ -1611,7 +1683,7 @@ public:
         /*
          * QualId -> [UnitId '.'] Ident
          */
-        return Ident();
+        return Ident(true);
     }
 
     Node *TypeId(bool bCanFail = false) {
