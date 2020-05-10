@@ -944,6 +944,7 @@ class Parser {
 		expect(Token::tokenType::RPAR);
 		node->op3 = new ParenNode(")");
 		return node;
+	  default: return nullptr;
 	}
 	return nullptr;
   }
