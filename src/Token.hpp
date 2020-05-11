@@ -85,6 +85,7 @@ class Token {
 	UNIT_Keyword,
 	WRITE_Keyword,
 	READ_Keyword,
+	WITH_Keyword,
   };
 
  private:
@@ -177,6 +178,8 @@ class Token {
 	  return tokenType::WRITE_Keyword;
 	else if (str == "read")
 	  return tokenType::READ_Keyword;
+	else if (str == "with")
+	  return tokenType::WITH_Keyword;
 
 	else if (str == "(")
 	  return tokenType::LPAR;

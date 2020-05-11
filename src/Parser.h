@@ -167,6 +167,8 @@ class Parser {
 		}
 		bAddNewline = false;
 		break;
+	  case Node::nodeType::WITH: cout << "WITH";
+		break;
 	}
 	if (bAddNewline)
 	  cout << endl;
@@ -1358,8 +1360,15 @@ class Parser {
 	/*
 	 * WithStmt -> WITH IdentList DO Statement
 	 */
-	return nullptr;
-	throw NotImplementedException("WithStmt()");
+	Node *node{nullptr};
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::WITH_Keyword) {
+	  lexer->nextToken();
+	  node = new Node(Node::nodeType::WITH);
+	  node->op1 = IdentList();
+	  expect(Token::tokenType::DO_Keyword);
+	  node->op2 = Statement();
+	}
+	return node;
   }
 
   Node *ProcedureDeclSection() {
