@@ -127,6 +127,10 @@ class Lexer {
 	  } else if (Token::determineTokenType(lexeme) != Token::tokenType::Undefined &&
 		  Token::determineTokenType(lexeme) != Token::tokenType::Id &&
 		  Token::determineTokenType(lexeme) != Token::tokenType::Num) { ///< if lexeme is known by Token
+		if (program[i] == 'l' && program[i + 1] == 'n') {
+		  lexeme += "ln";
+		  i++;
+		}///< this is for writeln() and readln()
 		tokens.emplace(lexeme);
 		lexeme = "";
 	  } else {
