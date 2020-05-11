@@ -48,6 +48,7 @@ class Parser {
 
   void printRecursive(Node *currentNode, size_t level) {
 	using namespace std;
+	bool bAddNewline = true;
 	// если узел не существует, то просто выходим из функции
 	if (currentNode == nullptr)
 	  return;
@@ -111,6 +112,7 @@ class Parser {
 		for (auto &node:currentNode->list) {
 		  printRecursive(node, level + 1);
 		}
+		bAddNewline = false;
 		break;
 	  case Node::nodeType::VARTYPE:cout << "VARTYPE";
 		cout << " ('" << currentNode->value << "')";
@@ -121,6 +123,7 @@ class Parser {
 		for (auto &node:currentNode->list) {
 		  printRecursive(node, level + 1);
 		}
+		bAddNewline = false;
 		break;
 	  case Node::nodeType::DESIGNATOR:cout << "DESIGNATOR ";
 		break;
@@ -155,10 +158,19 @@ class Parser {
 		for (auto &node:currentNode->list) {
 		  printRecursive(node, level + 1);
 		}
+		bAddNewline = false;
+		break;
 	  }
+	  case Node::nodeType::VAR_SECTION:cout << "VAR_SECTION" << endl;
+		for (auto &node:currentNode->list) {
+		  printRecursive(node, level + 1);
+		}
+		bAddNewline = false;
+		break;
 	}
+	if (bAddNewline)
+	  cout << endl;
 
-	cout << endl;
 
 	// т.к рекурсивная
 	printRecursive(currentNode->op1, level + 1);
@@ -838,7 +850,7 @@ class Parser {
 	 */
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::VAR_Keyword) { /// если есть ключевое слово var
 	  lexer->nextToken();
-	  Node *node = new Node(Node::nodeType::VARDECL);
+	  Node *node = new Node(Node::nodeType::VAR_SECTION);
 	  Node *tmp = VarDecl();
 	  if (tmp == nullptr)return nullptr; // если нету переменной
 	  node->list.push_back(tmp);

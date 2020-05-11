@@ -49,6 +49,7 @@ public:
 	  OUTPUT,
 	  FOR_LOOP,
 	  STATEMENT_LIST,
+	  VAR_SECTION,
 	};
   std::string value;
     nodeType type;
