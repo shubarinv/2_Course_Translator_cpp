@@ -5,10 +5,12 @@
 #define SPO_COMPILER_PARSER_H
 
 #include <stdexcept>
+#if __APPLE__
 #include <execinfo.h>
+#include "StackTraceGenerator.hpp"
+#endif
 #include "Lexer.h"
 #include "Node.hpp"
-#include "StackTraceGenerator.hpp"
 #include "exceptions.cpp"
 
 class Parser {
@@ -35,7 +37,9 @@ class Parser {
 	if (lexer->getCurrentToken()->getType() == tokenType) {
 	  lexer->nextToken();
 	} else {
-	  StackTraceGenerator::printStack();
+      #if __APPLE__
+         StackTraceGenerator::printStack();
+      #endif
 	  std::string error = "Expected token of type: ";
 	  error += Token::typeToString(tokenType);
 	  error += ", but got: ";
@@ -1910,7 +1914,9 @@ class Parser {
 	  lexer->nextToken();
 	  return node;
 	} else if (!bCanFail) {
-	  StackTraceGenerator::printStack();
+#if __APPLE__
+        StackTraceGenerator::printStack();
+#endif
 	  throw ParsingError("Expected id");
 	} else {
 	  return nullptr;
