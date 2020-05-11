@@ -169,6 +169,8 @@ class Parser {
 		break;
 	  case Node::nodeType::WITH: cout << "WITH";
 		break;
+	  case Node::nodeType::WHILE: cout << "WHILE";
+		break;
 	}
 	if (bAddNewline)
 	  cout << endl;
@@ -1317,7 +1319,9 @@ class Parser {
 				-> WhileStmt
 				-> ForStmt
 	 */
-	return ForStmt();
+	Node *node = WhileStmt();
+	if (node == nullptr) { node = ForStmt(); }
+	return node;
 	throw NotImplementedException("LoopStmt()");
   }
 
@@ -1332,7 +1336,15 @@ class Parser {
 	/*
 	 * WhileStmt -> WHILE Expression DO Statement
 	 */
-	throw NotImplementedException("WhileStmt()");
+	Node *node{nullptr};
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::WHILE_Keyword) {
+	  lexer->nextToken();
+	  node = new Node(Node::nodeType::WHILE);
+	  node->op1 = Expression();
+	  expect(Token::tokenType::DO_Keyword);
+	  node->op2 = Statement();
+	}
+	return node;
   }
 
   Node *ForStmt() {

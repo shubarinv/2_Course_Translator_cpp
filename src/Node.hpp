@@ -51,6 +51,7 @@ class Node {
 	STATEMENT_LIST,
 	VAR_SECTION,
 	WITH,
+	WHILE,
   };
   std::string value;
   nodeType type;
