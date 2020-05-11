@@ -57,6 +57,7 @@ class Node {
 	PARAMS,
 	PARAM,
 	FUNCTION,
+      AND,
   };
   std::string value;
   nodeType type;
