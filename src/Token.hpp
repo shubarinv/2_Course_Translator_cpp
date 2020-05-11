@@ -177,7 +177,7 @@ class Token {
 	  return tokenType::DOWNTO_Keyword;
 	else if (str == "do")
 	  return tokenType::DO_Keyword;
-	else if (str == "Continue")
+	else if (str == "continue")
 	  return tokenType::CONTINUE_Keyword;
 	else if (str == "readln")
 	  return tokenType::READ_Keyword;
@@ -227,22 +227,22 @@ class Token {
 	  return tokenType::Comparison;
 	else if (str == "<=")
 	  return tokenType::Comparison;
-	else if (str == "IN")
+	else if (str == "in")
 	  return tokenType::Comparison;
-	else if (str == "AS")
+	else if (str == "as")
 	  return tokenType::Comparison;
-	else if (str == "IS")
+	else if (str == "is")
 	  return tokenType::Comparison;
 	else if (str == "<>")
 	  return tokenType::Comparison;
 
-	else if (str == "Integer")
+	else if (str == "integer")
 	  return tokenType::INTEGER_Type;
-	else if (str == "LongInt")
+	else if (str == "longint")
 	  return tokenType::LONGINT_Type;
-	else if (str == "Byte")
+	else if (str == "byte")
 	  return tokenType::BYTE_Type;
-    else if (str == "Real")
+    else if (str == "real")
       return tokenType::REAL_Type;
     else if (str == "and")
         return tokenType::AND_Keyword;
