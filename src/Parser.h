@@ -1346,6 +1346,7 @@ class Parser {
 	  expect(Token::tokenType::Assignment);
 	  node->op2 = Expression();
 	  node->op3 = new StringNode(lexer->getCurrentToken()->getText());
+	  lexer->nextToken();
 	  node->op4 = Expression();
 	  expect(Token::tokenType::DO_Keyword);
 	  node->list.push_back(Statement());
