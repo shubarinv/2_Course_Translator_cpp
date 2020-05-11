@@ -151,7 +151,11 @@ class Parser {
 		break;
 	  case Node::nodeType::OUTPUT: cout << "OUTPUT ";
 		break;
-	  case Node::nodeType::FOR_LOOP: cout << "FOR_LOOP ";
+	  case Node::nodeType::FOR_LOOP: cout << "FOR_LOOP " << endl;
+		for (auto &node:currentNode->list) {
+		  printRecursive(node, level + 1);
+		}
+		bAddNewline = false;
 		break;
 	  case Node::nodeType::STATEMENT_LIST: {
 		cout << "STATEMENT_LIST " << endl;
