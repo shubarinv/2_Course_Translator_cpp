@@ -901,14 +901,16 @@ class Parser {
 	  lexer->nextToken();
 	}
 	if (node == nullptr) {
-	  node = Term();
-	  if (node == nullptr) { return nullptr; }
-	  node->op1 = AddOp();
-	  if (node->op1 == nullptr) {
-		return node;
+	  node = new Node(Node::nodeType::EXPR);
+	  node->op1 = Term();
+	  if (node->op1 == nullptr) { return nullptr; }
+	  node->op2 = AddOp();
+	  if (node->op2 == nullptr) {
+		return node->op1;
 	  }
-	  node->op2 = SimpleExpression();
-	  node = new binOpNode(node, node->op1->value, node->op2);
+	  node->op3 = SimpleExpression();
+
+	  node = new binOpNode(node->op1, node->op2->value, node->op3);
 	  return node;
 	} else {
 	  node->op2 = Term();
@@ -917,6 +919,7 @@ class Parser {
 		return node->op2;
 	  }
 	  node->op4 = SimpleExpression();
+
 	  return node;
 	}
   }
