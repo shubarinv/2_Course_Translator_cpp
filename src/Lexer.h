@@ -89,7 +89,8 @@ class Lexer {
 		}
 	  } else if (Token::determineTokenType(getString(program[i])) != Token::tokenType::Undefined && ///< если текущий символ мб ток.
 		  Token::determineTokenType(getString(program[i])) != Token::tokenType::Id &&
-		  Token::determineTokenType(getString(program[i])) != Token::tokenType::Num) {
+		  Token::determineTokenType(getString(program[i])) != Token::tokenType::Num &&
+		  Token::determineTokenType(getString(program[i])) != Token::tokenType::STRING) {
 		if (Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) != Token::tokenType::Undefined &&
 			Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) != Token::tokenType::Id &&
 			Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) != Token::tokenType::Num) {
