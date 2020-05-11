@@ -5,10 +5,14 @@
 #define SPO_COMPILER_PARSER_H
 
 #include <stdexcept>
+
+#if __APPLE__
 #include <execinfo.h>
+#include "StackTraceGenerator.hpp"
+#endif
+
 #include "Lexer.h"
 #include "Node.hpp"
-#include "StackTraceGenerator.hpp"
 #include "exceptions.cpp"
 
 class Parser {
@@ -35,7 +39,9 @@ class Parser {
 	if (lexer->getCurrentToken()->getType() == tokenType) {
 	  lexer->nextToken();
 	} else {
+#if __APPLE__
 	  StackTraceGenerator::printStack();
+#endif
 	  std::string error = "Expected token of type: ";
 	  error += Token::typeToString(tokenType);
 	  error += ", but got: ";
@@ -66,13 +72,19 @@ class Parser {
 	switch (currentNode->type) {
 	  case Node::nodeType::START:cout << "START ";
 		break;
-	  case Node::nodeType::EXPR:cout << "EXPR ";
+	  case Node::nodeType::EXPR:cout << "EXPR " << endl;
+		for (auto &node:currentNode->list) {
+		  printRecursive(node, level + 1);
+		}
+		bAddNewline = false;
 		break;
 	  case Node::nodeType::CONSTANT:cout << "CONST ";
 		// так как имеет значение, то выводим его в скобках
 		cout << "(" << currentNode->value << ")";
 		break;
 	  case Node::nodeType::ADD:cout << "ADD ";
+		break;
+	  case Node::nodeType::AND:cout << "AND";
 		break;
 	  case Node::nodeType::SUB:cout << "SUB ";
 		break;
@@ -117,7 +129,11 @@ class Parser {
 	  case Node::nodeType::VARTYPE:cout << "VARTYPE";
 		cout << " ('" << currentNode->value << "')";
 		break;
-	  case Node::nodeType::DECL:cout << "DECL ";
+	  case Node::nodeType::DECL:cout << "DECL " << endl;
+		for (auto &node:currentNode->list) {
+		  printRecursive(node, level + 1);
+		}
+		bAddNewline = false;
 		break;
 	  case Node::nodeType::VARLIST:cout << "VARLIST " << endl;
 		for (auto &node:currentNode->list) {
@@ -147,11 +163,15 @@ class Parser {
 		break;
 	  case Node::nodeType::SUBRANGE_EXPR:cout << "SUBRANGE_EXPR ";
 		break;
-	  case Node::nodeType::INPUT: cout << "INPUT ";
+	  case Node::nodeType::INPUT:cout << "INPUT ";
 		break;
-	  case Node::nodeType::OUTPUT: cout << "OUTPUT ";
+	  case Node::nodeType::OUTPUT:cout << "OUTPUT ";
 		break;
-	  case Node::nodeType::FOR_LOOP: cout << "FOR_LOOP ";
+	  case Node::nodeType::FOR_LOOP:cout << "FOR_LOOP " << endl;
+		for (auto &node:currentNode->list) {
+		  printRecursive(node, level + 1);
+		}
+		bAddNewline = false;
 		break;
 	  case Node::nodeType::STATEMENT_LIST: {
 		cout << "STATEMENT_LIST " << endl;
@@ -166,6 +186,20 @@ class Parser {
 		  printRecursive(node, level + 1);
 		}
 		bAddNewline = false;
+		break;
+	  case Node::nodeType::WITH:cout << "WITH";
+		break;
+	  case Node::nodeType::WHILE:cout << "WHILE";
+		break;
+	  case Node::nodeType::ARRAY_TYPE:cout << "Array_TYPE";
+		break;
+	  case Node::nodeType::PROCEDURE:cout << "PROCEDURE";
+		break;
+	  case Node::nodeType::PARAMS:cout << "PARAMS";
+		break;
+	  case Node::nodeType::PARAM:cout << "PARAM";
+		break;
+	  case Node::nodeType::FUNCTION:cout << "FUNCTION";
 		break;
 	}
 	if (bAddNewline)
@@ -346,12 +380,17 @@ class Parser {
 	 * ExportedHeading -> ProcedureHeading ';' [Directive]
 					   -> FunctionHeading ';' [Directive]
 	 */
-	Node *node = new Node(Node::nodeType::NODE);
-	if ((node->op1 = ProcedureHeading()) != nullptr) {
+	Node *node{nullptr};
+	if ((node = ProcedureHeading()) != nullptr) {
 	  expect(Token::tokenType::Semicolon);
 	  node->op2 = Directive();
+	} else {
+	  node = FunctionHeading();
+	  expect(Token::tokenType::Semicolon);
+	  node->op2 = Directive();
+
 	}
-	throw NotImplementedException("ExportedHeading()");
+	return node;
   }
 
   Node *ImplementationSection() {
@@ -387,17 +426,25 @@ class Parser {
 				   -> VarSection
 				   -> ProcedureDeclSection
 	 */
-	Node *node = LabelDeclSection();
-	if (node == nullptr) {
-	  node = ConstSection();
-	  if (node == nullptr) {
-		node = TypeSection();
-		if (node == nullptr) {
-		  node = VarSection();
-		  if (node == nullptr) {
-			node = ProcedureDeclSection();
+	Node *node = new Node(Node::nodeType::DECL);
+	Node *tmp;
+	while (true) {
+	  tmp = LabelDeclSection();
+	  if (tmp == nullptr) {
+		tmp = ConstSection();
+		if (tmp == nullptr) {
+		  tmp = TypeSection();
+		  if (tmp == nullptr) {
+			tmp = VarSection();
+			if (tmp == nullptr) {
+			  tmp = ProcedureDeclSection();
+			}
 		  }
 		}
+	  }
+	  if (tmp == nullptr)break;
+	  else {
+		node->list.push_back(tmp);
 	  }
 	}
 	return node;
@@ -560,7 +607,7 @@ class Parser {
 			-> ClassRefType
 	 */
 	Node *node;
-	node = TypeId();
+	node = TypeId(true);
 	if (node == nullptr) {
 	  node = SimpleType();
 	  if (node == nullptr) {
@@ -608,7 +655,7 @@ class Parser {
 	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::CLASS_Keyword) {
 	  lexer->nextToken();
-	  expect(Token::tokenType::OF);
+	  expect(Token::tokenType::OF_Keyword);
 	  node = TypeId();
 	}
 	return node;
@@ -635,7 +682,7 @@ class Parser {
 				-> CURRENCY
 				-> COMP
 	 */
-	Node *node = new Node(Node::nodeType::TYPE);
+	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::REAL48_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::REAL_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::SINGLE_Type ||
@@ -643,6 +690,7 @@ class Parser {
 		lexer->getCurrentToken()->getType() == Token::tokenType::EXTENDED_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::CURRENCY_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::COMP_Type) {
+	  node = new Node(Node::nodeType::TYPE);
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
 	} else return nullptr;
@@ -679,7 +727,7 @@ class Parser {
 				-> LONGWORD
 				-> PCHAR
 	 */
-	Node *node = new Node(Node::nodeType::TYPE);
+	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::SHORTINT_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::SMALLINT_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::INTEGER_Type ||
@@ -692,6 +740,7 @@ class Parser {
 		lexer->getCurrentToken()->getType() == Token::tokenType::WIDECHAR_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::LONGWORD_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::PCHAR_Type) {
+	  node = new Node(Node::nodeType::TYPE);
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
 	} else return nullptr;
@@ -703,9 +752,10 @@ class Parser {
 	 * VariantType -> VARIANT
 				   -> OLEVARIANT
 	 */
-	Node *node = new Node(Node::nodeType::TYPE);
+	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::VARIANT_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::OLEVARIANT_Type) {
+	  node = new Node(Node::nodeType::TYPE);
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
 	} else return nullptr;
@@ -716,9 +766,10 @@ class Parser {
 	/*
 	 * SubrangeType -> ConstExpr '..' ConstExpr
 	 */
-	Node *node = new Node(Node::nodeType::SUBRANGE_EXPR);
 
+	Node *node = new Node(Node::nodeType::SUBRANGE_EXPR);
 	node->op1 = ConstExpr();
+	if (node->op1 == nullptr)return nullptr;
 	expect(Token::tokenType::DOT);
 	expect(Token::tokenType::DOT);
 	node->value = "..";
@@ -748,37 +799,63 @@ class Parser {
 				  -> WIDESTRING
 				  -> STRING '[' ConstExpr ']'
 	 */
-	Node *node = new Node(Node::nodeType::TYPE);
-	if (lexer->getCurrentToken()->getType() == Token::tokenType::STRING ||
-		lexer->getCurrentToken()->getType() == Token::tokenType::ANSISTRING ||
+
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::ANSISTRING ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::WIDESTRING) {
+	  Node *node = new Node(Node::nodeType::TYPE);
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
 	  return node;
 	} else if (lexer->getCurrentToken()->getType() == Token::tokenType::STRING) {
+	  Node *node = new Node(Node::nodeType::TYPE);
 	  node->op1 = new StringNode(lexer->getCurrentToken()->getText());
 	  lexer->nextToken();
-	  expect(Token::tokenType::LBRACKET);
-	  node->op2 = new StringNode("[");
-	  node->op3 = ConstExpr();
-	  expect(Token::tokenType::RBRACKET);
-	  node->op4 = new StringNode("]");
+	  if (lexer->getCurrentToken()->getType() == Token::tokenType::LBRACKET) {
+		expect(Token::tokenType::LBRACKET);
+		node->op2 = new StringNode("[");
+		node->op3 = ConstExpr();
+		expect(Token::tokenType::RBRACKET);
+		node->op4 = new StringNode("]");
+	  } else return node;
 	} else return nullptr;
-	return node;
+	return nullptr;
   }
 
   Node *StrucType() {
 	/*
 	 * StrucType -> [PACKED] (ArrayType | SetType | FileType | RecType)
 	 */
-	throw NotImplementedException("StrucType()");
+	return ArrayType();
   }
 
   Node *ArrayType() {
 	/*
 	 * ArrayType -> ARRAY ['[' OrdinalType/','... ']'] OF Type
 	 */
-	throw NotImplementedException("ArrayType()");
+	Node *node{nullptr};
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::ARRAY_Keyword) {
+	  lexer->nextToken();
+	  node = new Node(Node::nodeType::ARRAY_TYPE);
+	  if (lexer->getCurrentToken()->getType() == Token::tokenType::LBRACKET) {
+		lexer->nextToken();
+		node->list.push_back(OrdinalType());
+		if (lexer->getCurrentToken()->getType() == Token::tokenType::COMMA) {
+		  expect(Token::tokenType::COMMA);
+		  while (node->list.back() != nullptr) {
+			node->list.push_back(OrdinalType());
+			if (lexer->getCurrentToken()->getType() == Token::tokenType::COMMA)
+			  expect(Token::tokenType::COMMA);
+			else {
+			  break;
+			}
+		  }
+		}
+		expect(Token::tokenType::RBRACKET);
+	  }
+	  expect(Token::tokenType::OF_Keyword);
+	  node->op1 = Type();
+	}
+	return node;
   }
 
   Node *RecType() {
@@ -834,14 +911,23 @@ class Parser {
 	/*
 	 * PointerType -> '^' TypeId
 	 */
-	throw NotImplementedException("ProcedureType()");
+	return nullptr;
   }
 
   Node *ProcedureType() {
 	/*
 	 * ProcedureType -> (ProcedureHeading | FunctionHeading) [OF OBJECT]
 	 */
-	throw NotImplementedException("ProcedureType()");
+	Node *node = new Node(Node::nodeType::TYPE);
+	node->op1 = ProcedureHeading();
+	if (node == nullptr)
+	  node->op1 = FunctionHeading();
+	if (node->op1 == nullptr)return nullptr;
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::OF_Keyword) {
+	  lexer->nextToken();
+	  expect(Token::tokenType::OBJECT_Keyword);
+	}
+	return node;
   }
 
   Node *VarSection() {
@@ -999,7 +1085,8 @@ class Parser {
 			 -> AS
 	 */
 	Node *node;
-	if (lexer->getCurrentToken()->getType() == Token::tokenType::Comparison) {
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::Comparison ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::EQUAL) {
 	  node = new Node(Node::nodeType::COMP, lexer->getCurrentToken()->getText());
 	  lexer->nextToken();
 	  return node;
@@ -1016,10 +1103,10 @@ class Parser {
 	 */
 	Node *node;
 	switch (lexer->getCurrentToken()->getType()) {
-	  case Token::tokenType::MathPlus: node = new Node(Node::nodeType::ADD, "+");
+	  case Token::tokenType::MathPlus:node = new Node(Node::nodeType::ADD, "+");
 		lexer->nextToken();
 		return node;
-	  case Token::tokenType::MathMinus: node = new Node(Node::nodeType::SUB, "-");
+	  case Token::tokenType::MathMinus:node = new Node(Node::nodeType::SUB, "-");
 		lexer->nextToken();
 		return node;
 	  default:return nullptr;
@@ -1044,7 +1131,10 @@ class Parser {
 	  case Token::tokenType::MathDiv:node = new Node(Node::nodeType::DIV, "/");
 		lexer->nextToken();
 		return node;
-	  default: return nullptr;
+	  case Token::tokenType::AND_Keyword:node = new Node(Node::nodeType::AND, "AND");
+		lexer->nextToken();
+		return node;
+	  default:return nullptr;
 	}
 	return nullptr;
   }
@@ -1098,8 +1188,9 @@ class Parser {
 	lexer->nextToken();
 	while (node->list.back() != nullptr) {
 	  node->list.push_back(Expression());
-	  if (node->list.back() != nullptr)
+	  if (lexer->getCurrentToken()->getType() == Token::tokenType::COMMA) {
 		expect(Token::tokenType::COMMA);
+	  } else break;
 	}
 	return node;
   }
@@ -1159,7 +1250,7 @@ class Parser {
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
 	  expect(Token::tokenType::LPAR);
-	  node->op1 = Ident();
+	  node->op1 = ExprList();
 	  expect(Token::tokenType::RPAR);
 	} else return nullptr;
 	return node;
@@ -1176,17 +1267,7 @@ class Parser {
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
 	  expect(Token::tokenType::LPAR);
-	  node->op1 = Ident(true);
-	  if (node->op1 == nullptr) {
-		node->op1 = String();
-	  }
-	  if (node->op1 != nullptr && lexer->getCurrentToken()->getType() == Token::tokenType::COMMA) {
-		lexer->nextToken();
-		node->op2 = Ident(true);
-		if (node->op2 == nullptr) {
-		  node->op2 = String();
-		}
-	  }
+	  node->op1 = ExprList();
 	  expect(Token::tokenType::RPAR);
 	} else return nullptr;
 	return node;
@@ -1315,7 +1396,9 @@ class Parser {
 				-> WhileStmt
 				-> ForStmt
 	 */
-	return ForStmt();
+	Node *node = WhileStmt();
+	if (node == nullptr) { node = ForStmt(); }
+	return node;
 	throw NotImplementedException("LoopStmt()");
   }
 
@@ -1330,7 +1413,15 @@ class Parser {
 	/*
 	 * WhileStmt -> WHILE Expression DO Statement
 	 */
-	throw NotImplementedException("WhileStmt()");
+	Node *node{nullptr};
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::WHILE_Keyword) {
+	  lexer->nextToken();
+	  node = new Node(Node::nodeType::WHILE);
+	  node->op1 = Expression();
+	  expect(Token::tokenType::DO_Keyword);
+	  node->op2 = Statement();
+	}
+	return node;
   }
 
   Node *ForStmt() {
@@ -1346,6 +1437,7 @@ class Parser {
 	  expect(Token::tokenType::Assignment);
 	  node->op2 = Expression();
 	  node->op3 = new StringNode(lexer->getCurrentToken()->getText());
+	  lexer->nextToken();
 	  node->op4 = Expression();
 	  expect(Token::tokenType::DO_Keyword);
 	  node->list.push_back(Statement());
@@ -1357,17 +1449,27 @@ class Parser {
 	/*
 	 * WithStmt -> WITH IdentList DO Statement
 	 */
-	return nullptr;
-	throw NotImplementedException("WithStmt()");
+	Node *node{nullptr};
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::WITH_Keyword) {
+	  lexer->nextToken();
+	  node = new Node(Node::nodeType::WITH);
+	  node->op1 = IdentList();
+	  expect(Token::tokenType::DO_Keyword);
+	  node->op2 = Statement();
+	}
+	return node;
   }
 
   Node *ProcedureDeclSection() {
 	/*
-	 * ProcedureDeclSection -> ProƒcedureDecl
+	 * ProcedureDeclSection -> ProcedureDecl
 							-> FunctionDecl
 	 */
-	return nullptr;
-	throw NotImplementedException("ProcedureDeclSection()");
+	Node *node = ProcedureDecl();
+	if (node == nullptr) {
+	  node = FunctionDecl();
+	}
+	return node;
   }
 
   Node *ProcedureDecl() {
@@ -1375,7 +1477,18 @@ class Parser {
 	 * ProcedureDecl -> ProcedureHeading ';' [Directive]
 			 Block ';'
 	*/
-	throw NotImplementedException("ProcedureDecl()");
+	Node *node = new Node(Node::nodeType::PROCEDURE);
+	node->op1 = ProcedureHeading();
+	if (node->op1 == nullptr)return nullptr;
+	expect(Token::tokenType::Semicolon);
+	node->op2 = Directive();
+	if (node->op2 == nullptr) {
+	  node->op2 = Block();
+	} else {
+	  node->op3 = Block();
+	}
+	expect(Token::tokenType::Semicolon);
+	return node;
   }
 
   Node *FunctionDecl() {
@@ -1383,35 +1496,114 @@ class Parser {
 	 * FunctionDecl -> FunctionHeading ';' [Directive]
 			Block ';'
 	 */
-	throw NotImplementedException("FunctionDecl()");
+	Node *node = new Node(Node::nodeType::FUNCTION);
+	node->op1 = FunctionHeading();
+	if (node->op1 == nullptr)return nullptr;
+	expect(Token::tokenType::Semicolon);
+	node->op2 = Directive();
+	if (node->op2 == nullptr) {
+	  node->op2 = Block();
+	} else {
+	  node->op3 = Block();
+	}
+	expect(Token::tokenType::Semicolon);
+	return node;
   }
 
   Node *FunctionHeading() {
 	/*
 	 * FunctionHeading -> FUNCTION Ident [FormalParameters] ':' (SimpleType | STRING)
 	 */
-	throw NotImplementedException("FunctionHeading()");
+	Node *node{nullptr};
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::FUNCTION_Keyword) {
+	  lexer->nextToken();
+	  node = new Node(Node::nodeType::FUNCTION);
+	  node->op1 = Ident();
+	  node->op2 = FormalParameters();
+	  expect(Token::tokenType::Colon);
+	  if (node->op2 == nullptr) {
+		node->op2 = SimpleType();
+		if (node->op2 == nullptr) {
+		  if (lexer->getCurrentToken()->getType() == Token::tokenType::STRING_Keyword) {
+			node->op2 = new StringNode(lexer->getCurrentToken()->getText());
+			lexer->nextToken();
+		  } else expect(Token::tokenType::STRING_Keyword);
+		}
+	  } else {
+		node->op3 = SimpleType();
+		if (node->op3 == nullptr) {
+		  if (lexer->getCurrentToken()->getType() == Token::tokenType::STRING_Keyword) {
+			node->op3 = new StringNode(lexer->getCurrentToken()->getText());
+			lexer->nextToken();
+		  } else expect(Token::tokenType::STRING_Keyword);
+		}
+	  }
+	}
+	return node;
   }
 
   Node *ProcedureHeading() {
 	/*
 	 * ProcedureHeading -> PROCEDURE Ident [FormalParameters]
 	 */
-	throw NotImplementedException("ProcedureHeading()");
+	Node *node{nullptr};
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::PROCEDURE_Keyword) {
+	  lexer->nextToken();
+	  node = new Node(Node::nodeType::PROCEDURE);
+	  node->op1 = Ident();
+	  node->op2 = FormalParameters();
+	}
+	return node;
   }
 
   Node *FormalParameters() {
 	/*
 	 * FormalParameters -> '(' FormalParm/';'... ')'
 	 */
-	throw NotImplementedException("FormalParameters()");
+	Node *node{nullptr};
+	Node *tmp;
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::LPAR) {
+	  node = new Node(Node::nodeType::PARAMS);
+	  lexer->nextToken();
+	  tmp = FormalParam();
+	  node->list.push_back(tmp);
+	  if (lexer->getCurrentToken()->getType() == Token::tokenType::Semicolon) {
+		lexer->nextToken();
+		while (node->list.back() != nullptr) {
+		  tmp = FormalParam();
+		  if (tmp == nullptr) {
+			if (node->list.size() == 1) {
+			  return node->list.front();
+			}
+			return node;
+		  }
+		  node->list.push_back(tmp);
+		  if (lexer->getCurrentToken()->getType() == Token::tokenType::Semicolon)
+			expect(Token::tokenType::Semicolon);
+		  else break;
+		}
+	  }
+	  expect(Token::tokenType::RPAR);
+	}
+	return node;
   }
 
   Node *FormalParam() {
 	/*
 	 * FormalParam -> [VAR | CONST | OUT] Parameter
 	 */
-	throw NotImplementedException("FormalParam()");
+	Node *node = new Node(Node::nodeType::PARAM);
+	switch (lexer->getCurrentToken()->getType()) {
+	  case Token::tokenType::VAR_Keyword:
+	  case Token::tokenType::CONST_Keyword:
+	  case Token::tokenType::OUT:node->op1 = new StringNode(lexer->getCurrentToken()->getText());
+		lexer->nextToken();
+		break;
+	  default:break;
+	}
+	node->op2 = Parameter();
+	if (node->op1 == nullptr && node->op2 != nullptr)return node->op2;
+	return node;
   }
 
   Node *Parameter() {
@@ -1419,7 +1611,37 @@ class Parser {
 	 * Parameter -> IdentList  [':' ([ARRAY OF] SimpleType | STRING | FILE)]
 				 -> Ident ':' SimpleType '=' ConstExpr
 	 */
-	throw NotImplementedException("Parameter()");
+	Node *node = IdentList();
+	if (node != nullptr) {
+	  if (lexer->getCurrentToken()->getType() == Token::tokenType::Colon) {
+		lexer->nextToken();
+		if (lexer->getCurrentToken()->getType() == Token::tokenType::ARRAY_Keyword) {
+		  expect(Token::tokenType::OF_Keyword);
+		  node->op1 = new StringNode("array of");
+		}
+		if (node->op1 != nullptr) {
+		  node->op2 = SimpleType();
+		}
+	  }
+	  if (node->op1 == nullptr) {
+		node->op1 = SimpleType();
+		if (node->op1 == nullptr) {
+		  if (lexer->getCurrentToken()->getType() == Token::tokenType::STRING_Keyword ||
+			  lexer->getCurrentToken()->getType() == Token::tokenType::FILE_Keyword) {
+			node->op1 = new StringNode(lexer->getCurrentToken()->getText());
+			lexer->nextToken();
+		  }
+		}
+	  }
+	} else {
+	  node = new Node(Node::nodeType::PARAM);
+	  node->op1 = Ident();
+	  expect(Token::tokenType::Colon);
+	  node->op2 = SimpleType();
+	  expect(Token::tokenType::EQUAL);
+	  node->op3 = ConstExpr();
+	}
+	return node;
   }
 
   Node *Directive() {
@@ -1440,6 +1662,7 @@ class Parser {
 				 -> SAFECALL
 				 -> STDCALL
 	 */
+	return nullptr;
 	throw NotImplementedException("Directive()");
   }
 
@@ -1653,8 +1876,27 @@ class Parser {
 	/*
 	 * TypeId -> [UnitId '.'] <type-identifier>
 	 */
-	Node *node = new Node(Node::nodeType::VARTYPE);
-	if (lexer->getCurrentToken()->getType() == Token::tokenType::DataType) {
+	Node *node{nullptr};
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::DataType ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::INTEGER_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::BYTE_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::LONGINT_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::BOOLEAN_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::CHAR_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::COMP_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::CURRENCY_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::DOUBLE_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::EXTENDED_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::INT64_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::LONGWORD_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::PCHAR_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::REAL_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::REAL48_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::SHORTINT_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::WORD_Type ||
+		lexer->getCurrentToken()->getType() == Token::tokenType::STRING_Keyword
+		) {
+	  node = new Node(Node::nodeType::VARTYPE);
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
 	  return node;
@@ -1675,6 +1917,9 @@ class Parser {
 	  lexer->nextToken();
 	  return node;
 	} else if (!bCanFail) {
+#if __APPLE__
+	  StackTraceGenerator::printStack();
+#endif
 	  throw ParsingError("Expected id");
 	} else {
 	  return nullptr;
@@ -1704,8 +1949,9 @@ class Parser {
 	/*
 	 * LabelId -> <label-identifier>
 	 */
-	throw NotImplementedException("Will not be implemented", "LabelId()");
 	return nullptr;
+	throw NotImplementedException("Will not be implemented", "LabelId()");
+
   }
 
   Node *Number() {

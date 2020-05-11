@@ -1,5 +1,5 @@
 var
-    factorial: longint;
+    factorial: Longint;
     n, i: byte;
 
 begin

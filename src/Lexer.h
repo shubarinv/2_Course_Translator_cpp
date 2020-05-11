@@ -18,27 +18,21 @@
 
 class Lexer {
  private:
-  std::queue<Token> tokens;
+  std::deque<Token> tokens;
   std::string program;
-  void emplaceToTokens(const std::string &str) {
-	emplaceToTokens(str);
-	if (tokens.back().getType() == Token::tokenType::Undefined)
-	  tokens.pop();
-  }
-
  public:
   void nextToken() {
-	tokens.pop();
+	tokens.pop_front();
 	std::cout << "Current token: " << tokens.front().getText() << std::endl;
   }
 
   Token *getCurrentToken() { return &tokens.front(); }
 
-  [[nodiscard]] std::queue<Token> getTokens() const { return tokens; }
+  [[nodiscard]] std::deque<Token> getTokens() const { return tokens; }
 
   void printAllTokens() {
 	using namespace std;
-	std::queue<Token> tmp = tokens;
+	std::deque<Token> tmp = tokens;
 	cout << "=========================" << endl;
 	int i = 0;
 	while (!tmp.empty()) {
@@ -46,7 +40,7 @@ class Lexer {
 		   << "] Type: " << Token::typeToString(tmp.front().getType())
 		   << " Value: " << tmp.front().getText() << endl;
 	  i++;
-	  tmp.pop();
+	  tmp.pop_front();
 	}
   }
 
@@ -84,31 +78,32 @@ class Lexer {
 		continue;
 	  else if (program[i] == '\n' || program[i] == ' ') { // если перенос строки или пробел добавляем лексему
 		if (!lexeme.empty() && Token::determineTokenType(lexeme) != Token::tokenType::Undefined) {
-		  tokens.emplace(lexeme);
+		  tokens.emplace_back(lexeme);
 		  lexeme = "";
 		}
 	  } else if (Token::determineTokenType(getString(program[i])) != Token::tokenType::Undefined && ///< если текущий символ мб ток.
 		  Token::determineTokenType(getString(program[i])) != Token::tokenType::Id &&
-		  Token::determineTokenType(getString(program[i])) != Token::tokenType::Num) {
+		  Token::determineTokenType(getString(program[i])) != Token::tokenType::Num &&
+		  Token::determineTokenType(getString(program[i])) != Token::tokenType::STRING) {
 		if (Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) != Token::tokenType::Undefined &&
 			Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) != Token::tokenType::Id &&
 			Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) != Token::tokenType::Num) {
 		  if (!lexeme.empty()) {
-			tokens.emplace(lexeme);
+			tokens.emplace_back(lexeme);
 			lexeme = "";
 		  }
-		  tokens.emplace(getString(program[i]) + getString(program[i + 1]));
+		  tokens.emplace_back(getString(program[i]) + getString(program[i + 1]));
 		  i++;
 		} else {
 		  if (!lexeme.empty()) {
-			tokens.emplace(lexeme);
+			tokens.emplace_back(lexeme);
 			lexeme = "";
 		  }
-		  tokens.emplace(getString(program[i]));
+		  tokens.emplace_back(getString(program[i]));
 		}
 	  } else if (program[i] == '\'' || program[i] == '"') { ///<if string
 		if (!lexeme.empty()) {
-		  tokens.emplace(lexeme);
+		  tokens.emplace_back(lexeme);
 		  lexeme = "";
 		}
 		lexeme += program[i];
@@ -120,22 +115,29 @@ class Lexer {
 		}
 		lexeme += program[i];
 		if (!lexeme.empty()) {
-		  tokens.emplace(lexeme);
+		  tokens.emplace_back(lexeme);
 		  lexeme = "";
 		}
 	  } else if (Token::determineTokenType(lexeme) != Token::tokenType::Undefined &&
 		  Token::determineTokenType(lexeme) != Token::tokenType::Id &&
 		  Token::determineTokenType(lexeme) != Token::tokenType::Num) { ///< if lexeme is known by Token
-		tokens.emplace(lexeme);
+		if (program[i] == 'l' && program[i + 1] == 'n') {
+		  lexeme += "ln";
+		  i++;
+		}///< this is for writeln() and readln()
+		tokens.emplace_back(lexeme);
 		lexeme = "";
 	  } else {
 		lexeme += getString(program[i]);
 	  }
 	}
 	if (!lexeme.empty() && Token::determineTokenType(lexeme) != Token::tokenType::Undefined) {
-	  tokens.emplace(lexeme);
+	  tokens.emplace_back(lexeme);
 	  lexeme = "";
 	}
+  }
+  void pushToFront(std::string token) {
+	tokens.emplace_front(token);
   }
   void printToFile() {
 	using namespace std;
@@ -144,12 +146,12 @@ class Lexer {
 		   "лексического анализатора\n";
 	out << "# lexer.printToFiles SHOULD BE REMOVED\n";
 	int i = 0;
-	std::queue<Token> tmp = tokens;
+	std::deque<Token> tmp = tokens;
 	while (!tmp.empty()) {
 	  out << "[" << i << "] Тип: " << Token::typeToString(tmp.front().getType())
 		  << " Значение: " << tmp.front().getText() << endl;
 	  i++;
-	  tmp.pop();
+	  tmp.pop_front();
 	}
 	out.close();
   }

@@ -58,7 +58,7 @@ class Token {
 	LABEL_Keyword,
 	CONST_Keyword,
 	CLASS_Keyword,
-	OF,
+	OF_Keyword,
 	REAL48_Type,
 	REAL_Type,
 	SINGLE_Type,
@@ -85,6 +85,14 @@ class Token {
 	UNIT_Keyword,
 	WRITE_Keyword,
 	READ_Keyword,
+	WITH_Keyword,
+	ARRAY_Keyword,
+	FUNCTION_Keyword,
+	OUT,
+	STRING_Keyword,
+	FILE_Keyword,
+	OBJECT_Keyword,
+      AND_Keyword,
   };
 
  private:
@@ -119,8 +127,8 @@ class Token {
 	} catch (std::exception &e) {
 	}
 
-	if ((str[0] == '\'' || str[0] == '\"') && str[str.size() - 1] == '\'' ||
-		str[str.size() - 1] == '\"')
+	if ((str[0] == '\'' || str[0] == '\"') && (str[str.size() - 1] == '\'' ||
+		str[str.size() - 1] == '\"'))
 	  return tokenType::STRING;
 
 	if (isNumber(str))
@@ -157,6 +165,8 @@ class Token {
 	  return tokenType::VAR_Keyword;
 	else if (str == "procedure")
 	  return tokenType::PROCEDURE_Keyword;
+	else if (str == "function")
+	  return tokenType::FUNCTION_Keyword;
 	else if (str == "type")
 	  return tokenType::TYPE_Keyword;
 	else if (str == "begin")
@@ -177,6 +187,16 @@ class Token {
 	  return tokenType::WRITE_Keyword;
 	else if (str == "read")
 	  return tokenType::READ_Keyword;
+	else if (str == "with")
+	  return tokenType::WITH_Keyword;
+	else if (str == "array")
+	  return tokenType::ARRAY_Keyword;
+	else if (str == "of")
+	  return tokenType::OF_Keyword;
+	else if (str == "string")
+	  return tokenType::STRING_Keyword;
+	else if (str == "file")
+        return tokenType::FILE_Keyword;
 
 	else if (str == "(")
 	  return tokenType::LPAR;
@@ -200,7 +220,7 @@ class Token {
 	  return tokenType::DOT;
 
 	else if (str == ">")
-	  return tokenType::LESS;
+	  return tokenType::Comparison;
 	else if (str == "<")
 	  return tokenType::Comparison;
 	else if (str == ">=")
@@ -217,11 +237,15 @@ class Token {
 	  return tokenType::Comparison;
 
 	else if (str == "Integer")
-	  return tokenType::DataType;
+	  return tokenType::INTEGER_Type;
 	else if (str == "LongInt")
-	  return tokenType::DataType;
+	  return tokenType::LONGINT_Type;
 	else if (str == "Byte")
-	  return tokenType::DataType;
+	  return tokenType::BYTE_Type;
+    else if (str == "Real")
+      return tokenType::REAL_Type;
+    else if (str == "and")
+        return tokenType::AND_Keyword;
 
 	else if (boost::regex_match(str, what, IdRegex))
 	  return tokenType::Id;
@@ -281,7 +305,7 @@ class Token {
 	  case tokenType::LABEL_Keyword:return "LABEL_Keyword";
 	  case tokenType::CONST_Keyword:return "CONST_Keyword";
 	  case tokenType::CLASS_Keyword:return "CLASS_Keyword";
-	  case tokenType::OF:return "OF";
+	  case tokenType::OF_Keyword:return "OF";
 	  case tokenType::REAL48_Type:return "REAL48_Type";
 	  case tokenType::REAL_Type:return "REAL_Type";
 	  case tokenType::SINGLE_Type:return "SINGLE_Type";
@@ -308,7 +332,15 @@ class Token {
 	  case tokenType::UNIT_Keyword:return "UNIT_Keyword";
 	  case tokenType::WRITE_Keyword:return "WRITE_Keyword";
 	  case tokenType::READ_Keyword:return "READ_Keyword";
-	}
+	  case tokenType::WITH_Keyword:return "WITH_Keyword";
+	  case tokenType::ARRAY_Keyword:return "ARRAY_Keyword";
+	  case tokenType::FUNCTION_Keyword:return "FUNCTION_Keyword";
+	  case tokenType::OUT:return "OUT";
+	  case tokenType::STRING_Keyword:return "STRING_Keyword";
+	  case tokenType::FILE_Keyword:return "FILE_Keyword";
+        case tokenType::OBJECT_Keyword:return "OBJECT_Keyword";
+        case tokenType::AND_Keyword:return "AND_Keyword";
+    }
 	return "ERROR";
   }
 };
