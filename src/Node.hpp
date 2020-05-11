@@ -53,6 +53,10 @@ class Node {
 	WITH,
 	WHILE,
 	ARRAY_TYPE,
+	PROCEDURE,
+	PARAMS,
+	PARAM,
+	FUNCTION,
   };
   std::string value;
   nodeType type;

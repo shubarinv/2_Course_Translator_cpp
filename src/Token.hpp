@@ -88,6 +88,10 @@ class Token {
 	WITH_Keyword,
 	ARRAY_Keyword,
 	FUNCTION_Keyword,
+	OUT,
+	STRING_Keyword,
+	FILE_Keyword,
+	OBJECT_Keyword,
   };
 
  private:
@@ -188,6 +192,10 @@ class Token {
 	  return tokenType::ARRAY_Keyword;
 	else if (str == "of")
 	  return tokenType::OF_Keyword;
+	else if (str == "string")
+	  return tokenType::STRING_Keyword;
+	else if (str == "file")
+	  return tokenType::FILE_Keyword;
 
 	else if (str == "(")
 	  return tokenType::LPAR;
@@ -228,11 +236,11 @@ class Token {
 	  return tokenType::Comparison;
 
 	else if (str == "Integer")
-	  return tokenType::DataType;
+	  return tokenType::INTEGER_Type;
 	else if (str == "LongInt")
-	  return tokenType::DataType;
+	  return tokenType::LONGINT_Type;
 	else if (str == "Byte")
-	  return tokenType::DataType;
+	  return tokenType::BYTE_Type;
 
 	else if (boost::regex_match(str, what, IdRegex))
 	  return tokenType::Id;
@@ -322,6 +330,9 @@ class Token {
 	  case tokenType::WITH_Keyword:return "WITH_Keyword";
 	  case tokenType::ARRAY_Keyword:return "ARRAY_Keyword";
 	  case tokenType::FUNCTION_Keyword:return "FUNCTION_Keyword";
+	  case tokenType::OUT:return "OUT";
+	  case tokenType::STRING_Keyword:return "STRING_Keyword";
+	  case tokenType::FILE_Keyword:return "FILE_Keyword";
 	}
 	return "ERROR";
   }
