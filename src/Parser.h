@@ -1421,7 +1421,7 @@ class Parser {
 
   Node *ProcedureDeclSection() {
 	/*
-	 * ProcedureDeclSection -> ProƒcedureDecl
+	 * ProcedureDeclSection -> ProcedureDecl
 							-> FunctionDecl
 	 */
 	return nullptr;
@@ -1455,6 +1455,7 @@ class Parser {
 	/*
 	 * ProcedureHeading -> PROCEDURE Ident [FormalParameters]
 	 */
+
 	throw NotImplementedException("ProcedureHeading()");
   }
 

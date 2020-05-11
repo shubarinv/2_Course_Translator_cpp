@@ -87,6 +87,7 @@ class Token {
 	READ_Keyword,
 	WITH_Keyword,
 	ARRAY_Keyword,
+	FUNCTION_Keyword,
   };
 
  private:
@@ -159,6 +160,8 @@ class Token {
 	  return tokenType::VAR_Keyword;
 	else if (str == "procedure")
 	  return tokenType::PROCEDURE_Keyword;
+	else if (str == "function")
+	  return tokenType::FUNCTION_Keyword;
 	else if (str == "type")
 	  return tokenType::TYPE_Keyword;
 	else if (str == "begin")
@@ -318,6 +321,7 @@ class Token {
 	  case tokenType::READ_Keyword:return "READ_Keyword";
 	  case tokenType::WITH_Keyword:return "WITH_Keyword";
 	  case tokenType::ARRAY_Keyword:return "ARRAY_Keyword";
+	  case tokenType::FUNCTION_Keyword:return "FUNCTION_Keyword";
 	}
 	return "ERROR";
   }
