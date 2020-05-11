@@ -136,6 +136,9 @@ class Lexer {
 	  lexeme = "";
 	}
   }
+  void pushToFront(std::string token) {
+	tokens.emplace_front(token);
+  }
   void printToFile() {
 	using namespace std;
 	ofstream out("output.txt");

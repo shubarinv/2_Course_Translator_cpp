@@ -171,6 +171,8 @@ class Parser {
 		break;
 	  case Node::nodeType::WHILE: cout << "WHILE";
 		break;
+	  case Node::nodeType::ARRAY_TYPE: cout << "Array_TYPE";
+		break;
 	}
 	if (bAddNewline)
 	  cout << endl;
@@ -564,7 +566,7 @@ class Parser {
 			-> ClassRefType
 	 */
 	Node *node;
-	node = TypeId();
+	node = TypeId(true);
 	if (node == nullptr) {
 	  node = SimpleType();
 	  if (node == nullptr) {
@@ -612,7 +614,7 @@ class Parser {
 	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::CLASS_Keyword) {
 	  lexer->nextToken();
-	  expect(Token::tokenType::OF);
+	  expect(Token::tokenType::OF_Keyword);
 	  node = TypeId();
 	}
 	return node;
@@ -639,7 +641,7 @@ class Parser {
 				-> CURRENCY
 				-> COMP
 	 */
-	Node *node = new Node(Node::nodeType::TYPE);
+	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::REAL48_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::REAL_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::SINGLE_Type ||
@@ -647,6 +649,7 @@ class Parser {
 		lexer->getCurrentToken()->getType() == Token::tokenType::EXTENDED_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::CURRENCY_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::COMP_Type) {
+	  node = new Node(Node::nodeType::TYPE);
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
 	} else return nullptr;
@@ -683,7 +686,7 @@ class Parser {
 				-> LONGWORD
 				-> PCHAR
 	 */
-	Node *node = new Node(Node::nodeType::TYPE);
+	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::SHORTINT_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::SMALLINT_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::INTEGER_Type ||
@@ -696,6 +699,7 @@ class Parser {
 		lexer->getCurrentToken()->getType() == Token::tokenType::WIDECHAR_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::LONGWORD_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::PCHAR_Type) {
+	  node = new Node(Node::nodeType::TYPE);
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
 	} else return nullptr;
@@ -707,9 +711,10 @@ class Parser {
 	 * VariantType -> VARIANT
 				   -> OLEVARIANT
 	 */
-	Node *node = new Node(Node::nodeType::TYPE);
+	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::VARIANT_Type ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::OLEVARIANT_Type) {
+	  node = new Node(Node::nodeType::TYPE);
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
 	} else return nullptr;
@@ -720,9 +725,10 @@ class Parser {
 	/*
 	 * SubrangeType -> ConstExpr '..' ConstExpr
 	 */
-	Node *node = new Node(Node::nodeType::SUBRANGE_EXPR);
 
+	Node *node = new Node(Node::nodeType::SUBRANGE_EXPR);
 	node->op1 = ConstExpr();
+	if (node->op1 == nullptr)return nullptr;
 	expect(Token::tokenType::DOT);
 	expect(Token::tokenType::DOT);
 	node->value = "..";
@@ -752,37 +758,63 @@ class Parser {
 				  -> WIDESTRING
 				  -> STRING '[' ConstExpr ']'
 	 */
-	Node *node = new Node(Node::nodeType::TYPE);
-	if (lexer->getCurrentToken()->getType() == Token::tokenType::STRING ||
-		lexer->getCurrentToken()->getType() == Token::tokenType::ANSISTRING ||
+
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::ANSISTRING ||
 		lexer->getCurrentToken()->getType() == Token::tokenType::WIDESTRING) {
+	  Node *node = new Node(Node::nodeType::TYPE);
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
 	  return node;
 	} else if (lexer->getCurrentToken()->getType() == Token::tokenType::STRING) {
+	  Node *node = new Node(Node::nodeType::TYPE);
 	  node->op1 = new StringNode(lexer->getCurrentToken()->getText());
 	  lexer->nextToken();
-	  expect(Token::tokenType::LBRACKET);
-	  node->op2 = new StringNode("[");
-	  node->op3 = ConstExpr();
-	  expect(Token::tokenType::RBRACKET);
-	  node->op4 = new StringNode("]");
+	  if (lexer->getCurrentToken()->getType() == Token::tokenType::LBRACKET) {
+		expect(Token::tokenType::LBRACKET);
+		node->op2 = new StringNode("[");
+		node->op3 = ConstExpr();
+		expect(Token::tokenType::RBRACKET);
+		node->op4 = new StringNode("]");
+	  } else return node;
 	} else return nullptr;
-	return node;
+	return nullptr;
   }
 
   Node *StrucType() {
 	/*
 	 * StrucType -> [PACKED] (ArrayType | SetType | FileType | RecType)
 	 */
-	throw NotImplementedException("StrucType()");
+	return ArrayType();
   }
 
   Node *ArrayType() {
 	/*
 	 * ArrayType -> ARRAY ['[' OrdinalType/','... ']'] OF Type
 	 */
-	throw NotImplementedException("ArrayType()");
+	Node *node{nullptr};
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::ARRAY_Keyword) {
+	  lexer->nextToken();
+	  node = new Node(Node::nodeType::ARRAY_TYPE);
+	  if (lexer->getCurrentToken()->getType() == Token::tokenType::LBRACKET) {
+		lexer->nextToken();
+		node->list.push_back(OrdinalType());
+		if (lexer->getCurrentToken()->getType() == Token::tokenType::COMMA) {
+		  expect(Token::tokenType::COMMA);
+		  while (node->list.back() != nullptr) {
+			node->list.push_back(OrdinalType());
+			if (lexer->getCurrentToken()->getType() == Token::tokenType::COMMA)
+			  expect(Token::tokenType::COMMA);
+			else {
+			  break;
+			}
+		  }
+		}
+		expect(Token::tokenType::RBRACKET);
+	  }
+	  expect(Token::tokenType::OF_Keyword);
+	  node->op1 = Type();
+	}
+	return node;
   }
 
   Node *RecType() {
@@ -838,14 +870,14 @@ class Parser {
 	/*
 	 * PointerType -> '^' TypeId
 	 */
-	throw NotImplementedException("ProcedureType()");
+	return nullptr;
   }
 
   Node *ProcedureType() {
 	/*
 	 * ProcedureType -> (ProcedureHeading | FunctionHeading) [OF OBJECT]
 	 */
-	throw NotImplementedException("ProcedureType()");
+	return nullptr;
   }
 
   Node *VarSection() {
@@ -1675,8 +1707,9 @@ class Parser {
 	/*
 	 * TypeId -> [UnitId '.'] <type-identifier>
 	 */
-	Node *node = new Node(Node::nodeType::VARTYPE);
+	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::DataType) {
+	  node = new Node(Node::nodeType::VARTYPE);
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
 	  return node;
@@ -1726,8 +1759,9 @@ class Parser {
 	/*
 	 * LabelId -> <label-identifier>
 	 */
-	throw NotImplementedException("Will not be implemented", "LabelId()");
 	return nullptr;
+	throw NotImplementedException("Will not be implemented", "LabelId()");
+
   }
 
   Node *Number() {

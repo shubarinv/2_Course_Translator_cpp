@@ -52,6 +52,7 @@ class Node {
 	VAR_SECTION,
 	WITH,
 	WHILE,
+	ARRAY_TYPE,
   };
   std::string value;
   nodeType type;
