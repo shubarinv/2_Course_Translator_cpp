@@ -1444,8 +1444,7 @@ class Parser {
 
   Node *ForStmt() {
 	/*
-	 * ForStmt -> FOR QualId ':=' Expression (TO | DOWNTO) Expression DO
-	 * Statement
+	 * ForStmt -> FOR QualId ':=' Expression (TO | DOWNTO) Expression DO Statement
 	 */
 	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::FOR_Keyword) {

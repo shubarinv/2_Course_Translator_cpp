@@ -10,36 +10,36 @@
 #include "variable_table.hpp"
 class SemanticAnalyser {
  private:
-  Node*tree{};
-  Parser*parser{};
-  VariableTable*variables;
+  Node *tree{};
+  Parser *parser{};
+  VariableTable *variables;
  public:
   explicit SemanticAnalyser(const std::string &_filename) {
 	parser = new Parser(_filename);
 	parser->parse();
-	tree=parser->GetTree();
-	variables=new VariableTable();
+	tree = parser->GetTree();
+	variables = new VariableTable();
 	analyze();
   }
  private:
-  void analyze(){
+  void analyze() {
 	lookForVariableDeclaration(tree);
 	variables->printToConsole();
+	checkBinOps(tree);
   }
-  void lookForVariableDeclaration(Node *currentNode){
+  void lookForVariableDeclaration(Node *currentNode) {
 	// если текущая нода ноль, то делать с ней ничего нельзя
 	// так что выходим из функции
 	if (currentNode == nullptr)
 	  return;
 
-	if(currentNode->type ==Node::nodeType::VARDECL){
+	if (currentNode->type == Node::nodeType::VARDECL) {
 	  std::string varType = currentNode->op2->value;
-	  for(auto &varName:currentNode->op1->list){
-	    variables->addVar(new Variable(varName->value,Variable::determineVarType(varType)));
+	  for (auto &varName:currentNode->op1->list) {
+		variables->addVar(new Variable(varName->value, Variable::determineVarType(varType)));
 	  }
-	}
-	else if(currentNode->type==Node::nodeType::VAR){
-	  if(!variables->isVarDefined(currentNode->value)){
+	} else if (currentNode->type == Node::nodeType::VAR) {
+	  if (!variables->isVarDefined(currentNode->value)) {
 		throw VariableNotDefinedError(currentNode->value);
 	  }
 	}
@@ -50,6 +50,40 @@ class SemanticAnalyser {
 	lookForVariableDeclaration(currentNode->op4);
 	for (auto &node :currentNode->list) {
 	  lookForVariableDeclaration(node);
+	}
+  }
+  void checkBinOps(Node *currentNode) {
+	// если текущая нода ноль, то делать с ней ничего нельзя
+	// так что выходим из функции
+	if (currentNode == nullptr)
+	  return;
+
+	if (currentNode->type == Node::nodeType::BINOP) {
+	  if (currentNode->value == ":=") {
+
+	  } else if (currentNode->value == "*" || currentNode->value == "/" || currentNode->value == "+" || currentNode->value == "-") {
+		if (currentNode->op2->type == Node::nodeType::CONSTANT) {}
+		if (currentNode->op2->type == Node::nodeType::VAR) {
+
+		  if (!Variable::areTypesCompatible(variables->getVarByName(currentNode->op2->value)->getType(),
+											variables->getVarByName(currentNode->op1->value)->getType())) {
+			throw std::runtime_error(
+				"Var type mismatch: cannot \'" + currentNode->value + "\' " + currentNode->op1->value +
+					"(" +
+					Variable::varTypeToString(variables->getVarByName(currentNode->op1->value)->getType()) + ") and "
+					+ currentNode->op2->value + "(" +
+					Variable::varTypeToString(variables->getVarByName(currentNode->op2->value)->getType()) + ")");
+		  }
+		}
+
+	  }
+	}
+	checkBinOps(currentNode->op1);
+	checkBinOps(currentNode->op2);
+	checkBinOps(currentNode->op3);
+	checkBinOps(currentNode->op4);
+	for (auto &node :currentNode->list) {
+	  checkBinOps(node);
 	}
   }
 };
