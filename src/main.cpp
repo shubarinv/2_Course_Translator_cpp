@@ -1,9 +1,8 @@
-#include "Lexer.h"
+
 #include "Parser.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <iostream>
-// BOOST_ENABLE_ASSERT_DEBUG_HANDLER is defined for the whole project
 #include <stdexcept>    // std::logic_error
 #include <iostream>     // std::cerr
 using namespace boost;
