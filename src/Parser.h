@@ -30,11 +30,13 @@ class Parser {
   void parse() {
 	tree = Goal();
 	printRecursive(tree, 0);
+	std::cout << "\n\n----PARSING DONE -----\n\n" << std::endl;
   }
 
   explicit Parser(const std::string &_filename) {
 	lexer = new Lexer(_filename);
 	lexer->tokenize();
+
   }
  private:
   void expect(Token::tokenType tokenType) {
@@ -184,20 +186,6 @@ class Parser {
 	}
   }
 
-  void recursiveTraversal(Node *currentNode) {
-	// если текущая нода ноль, то делать с ней ничего нельзя
-	// так что выходим из функции
-	if (currentNode == nullptr)
-	  return;
-
-	recursiveTraversal(currentNode->op1);
-	recursiveTraversal(currentNode->op2);
-	recursiveTraversal(currentNode->op3);
-	recursiveTraversal(currentNode->op4);
-	for (auto &node :currentNode->list) {
-	  recursiveTraversal(node);
-	}
-  }
 
   Node *Goal() {
 	/*

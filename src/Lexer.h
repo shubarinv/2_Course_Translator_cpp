@@ -21,9 +21,9 @@ class Lexer {
   std::deque<Token> tokens;
   std::string program;
 
-  static std::string toLowerCase(std::string str){
-      for (auto & c: str) c = tolower(c);
-      return str;
+  static std::string toLowerCase(std::string str) {
+	for (auto &c: str) c = tolower(c);
+	return str;
   }
  public:
   void nextToken() {
@@ -140,8 +140,9 @@ class Lexer {
 	  tokens.emplace_back(toLowerCase(lexeme));
 	  lexeme = "";
 	}
+	cout << "\n\n---- TOKENIZATION DONE -----\n\n" << endl;
   }
-  void pushToFront(std::string token) {
+  void pushToFront(const std::string& token) {
 	tokens.emplace_front(token);
   }
   void printToFile() {

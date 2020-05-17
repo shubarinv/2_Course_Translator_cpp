@@ -7,7 +7,6 @@
 
 #include <vector>
 #include "variable.hpp"
-#include "exceptions.cpp"
 class VariableTable {
  public:
   ~VariableTable() { variables.clear(); }
@@ -30,6 +29,12 @@ class VariableTable {
 	  }
 	}
 	return false;
+  }
+
+  void printToConsole(){
+    for (auto &var : variables) {
+      std::cout << var->getName() << ": " << Variable::varTypeToString(var->getType())<<std::endl;
+    }
   }
 
  private:
