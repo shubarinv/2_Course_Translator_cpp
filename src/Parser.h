@@ -19,23 +19,25 @@ class Parser {
  private:
   Lexer *lexer;
   Node *tree{};
+ public:
+  [[nodiscard]] Node *GetTree() const {
+	if (tree == nullptr) { std::cout << "Tree is null! Either you didn't use parse() function in Parser or there is nothing to parse." <<
+	std::endl; }
+	return tree;
+  }
 
  public:
   void parse() {
-	lexer->tokenize();
-	lexer->printAllTokens();
 	tree = Goal();
 	printRecursive(tree, 0);
   }
 
   explicit Parser(const std::string &_filename) {
-
 	lexer = new Lexer(_filename);
-	parse();
+	lexer->tokenize();
   }
  private:
   void expect(Token::tokenType tokenType) {
-
 	if (lexer->getCurrentToken()->getType() == tokenType) {
 	  lexer->nextToken();
 	} else {
@@ -43,7 +45,7 @@ class Parser {
 	  StackTraceGenerator::printStack();
 #endif
 	  printRecursive(tree, 0);
-	  throw ParsingError(Token::typeToString(tokenType),lexer->getCurrentToken()->getText());
+	  throw ParsingError(Token::typeToString(tokenType), lexer->getCurrentToken()->getText());
 	}
   }
 
@@ -1870,7 +1872,7 @@ class Parser {
 	  node = IdentList();
 	  return node;
 	} else if (!bCanFail) {
-	  throw ParsingError("LPAR",Token::typeToString(lexer->getCurrentToken()->getType()));
+	  throw ParsingError("LPAR", Token::typeToString(lexer->getCurrentToken()->getType()));
 	} else {
 	  return nullptr;
 	}
@@ -1950,7 +1952,7 @@ class Parser {
 	  lexer->nextToken();
 	  return node;
 	} else if (!bCanFail) {
-	  throw ParsingError("ID",lexer->getCurrentToken()->getText());
+	  throw ParsingError("ID", lexer->getCurrentToken()->getText());
 	} else {
 	  return nullptr;
 	}
@@ -1969,7 +1971,7 @@ class Parser {
 #if __APPLE__
 	  StackTraceGenerator::printStack();
 #endif
-	  throw ParsingError("ID",lexer->getCurrentToken()->getText());
+	  throw ParsingError("ID", lexer->getCurrentToken()->getText());
 	} else {
 	  return nullptr;
 	}
