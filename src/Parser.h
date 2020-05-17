@@ -18,7 +18,7 @@
 class Parser {
  private:
   Lexer *lexer;
-  Node *tree;
+  Node *tree{};
 
  public:
   void parse() {
@@ -42,13 +42,8 @@ class Parser {
 #if __APPLE__
 	  StackTraceGenerator::printStack();
 #endif
-	  std::string error = "Expected token of type: ";
-	  error += Token::typeToString(tokenType);
-	  error += ", but got: ";
-	  error += Token::typeToString(lexer->getCurrentToken()->getType());
-	  error += "(" + lexer->getCurrentToken()->getText() + ")";
 	  printRecursive(tree, 0);
-	  throw ParsingError(error);
+	  throw ParsingError(Token::typeToString(tokenType),lexer->getCurrentToken()->getText());
 	}
   }
 
@@ -1875,7 +1870,7 @@ class Parser {
 	  node = IdentList();
 	  return node;
 	} else if (!bCanFail) {
-	  throw ParsingError("Expected LPAR");
+	  throw ParsingError("LPAR",Token::typeToString(lexer->getCurrentToken()->getType()));
 	} else {
 	  return nullptr;
 	}
@@ -1955,7 +1950,7 @@ class Parser {
 	  lexer->nextToken();
 	  return node;
 	} else if (!bCanFail) {
-	  throw ParsingError("Expected type id");
+	  throw ParsingError("ID",lexer->getCurrentToken()->getText());
 	} else {
 	  return nullptr;
 	}
@@ -1974,7 +1969,7 @@ class Parser {
 #if __APPLE__
 	  StackTraceGenerator::printStack();
 #endif
-	  throw ParsingError("Expected id");
+	  throw ParsingError("ID",lexer->getCurrentToken()->getText());
 	} else {
 	  return nullptr;
 	}
