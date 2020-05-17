@@ -33,7 +33,7 @@ class Parser {
 	lexer = new Lexer(_filename);
 	parse();
   }
-
+ private:
   void expect(Token::tokenType tokenType) {
 
 	if (lexer->getCurrentToken()->getType() == tokenType) {
