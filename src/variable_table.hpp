@@ -20,7 +20,7 @@ class VariableTable {
 		return var;
 	  }
 	}
-	throw NotImplementedException();
+	throw VariableNotDefinedError(_name);
   }
 
   bool isVarDefined(const std::string &_name) {
