@@ -20,6 +20,11 @@ class Lexer {
  private:
   std::deque<Token> tokens;
   std::string program;
+
+  static std::string toLowerCase(std::string str){
+      for (auto & c: str) c = tolower(c);
+      return str;
+  }
  public:
   void nextToken() {
 	tokens.pop_front();
@@ -77,8 +82,8 @@ class Lexer {
 	  if (program[i] == '\r' || program[i] == '\t' || program[i] == '\0') //игнорируем всякую ерунду
 		continue;
 	  else if (program[i] == '\n' || program[i] == ' ') { // если перенос строки или пробел добавляем лексему
-		if (!lexeme.empty() && Token::determineTokenType(lexeme) != Token::tokenType::Undefined) {
-		  tokens.emplace_back(lexeme);
+		if (!lexeme.empty() && Token::determineTokenType(toLowerCase(lexeme)) != Token::tokenType::Undefined) {
+		  tokens.emplace_back(toLowerCase(lexeme));
 		  lexeme = "";
 		}
 	  } else if (Token::determineTokenType(getString(program[i])) != Token::tokenType::Undefined && ///< если текущий символ мб ток.
@@ -89,21 +94,21 @@ class Lexer {
 			Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) != Token::tokenType::Id &&
 			Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) != Token::tokenType::Num) {
 		  if (!lexeme.empty()) {
-			tokens.emplace_back(lexeme);
+			tokens.emplace_back(toLowerCase(lexeme));
 			lexeme = "";
 		  }
 		  tokens.emplace_back(getString(program[i]) + getString(program[i + 1]));
 		  i++;
 		} else {
 		  if (!lexeme.empty()) {
-			tokens.emplace_back(lexeme);
+			tokens.emplace_back(toLowerCase(lexeme));
 			lexeme = "";
 		  }
 		  tokens.emplace_back(getString(program[i]));
 		}
 	  } else if (program[i] == '\'' || program[i] == '"') { ///<if string
 		if (!lexeme.empty()) {
-		  tokens.emplace_back(lexeme);
+		  tokens.emplace_back(toLowerCase(lexeme));
 		  lexeme = "";
 		}
 		lexeme += program[i];
@@ -115,24 +120,24 @@ class Lexer {
 		}
 		lexeme += program[i];
 		if (!lexeme.empty()) {
-		  tokens.emplace_back(lexeme);
+		  tokens.emplace_back(toLowerCase(lexeme));
 		  lexeme = "";
 		}
-	  } else if (Token::determineTokenType(lexeme) != Token::tokenType::Undefined &&
-		  Token::determineTokenType(lexeme) != Token::tokenType::Id &&
-		  Token::determineTokenType(lexeme) != Token::tokenType::Num) { ///< if lexeme is known by Token
+	  } else if (Token::determineTokenType(toLowerCase(lexeme)) != Token::tokenType::Undefined &&
+		  Token::determineTokenType(toLowerCase(lexeme)) != Token::tokenType::Id &&
+		  Token::determineTokenType(toLowerCase(lexeme)) != Token::tokenType::Num) { ///< if lexeme is known by Token
 		if (program[i] == 'l' && program[i + 1] == 'n') {
 		  lexeme += "ln";
 		  i++;
 		}///< this is for writeln() and readln()
-		tokens.emplace_back(lexeme);
+		tokens.emplace_back(toLowerCase(lexeme));
 		lexeme = "";
 	  } else {
 		lexeme += getString(program[i]);
 	  }
 	}
-	if (!lexeme.empty() && Token::determineTokenType(lexeme) != Token::tokenType::Undefined) {
-	  tokens.emplace_back(lexeme);
+	if (!lexeme.empty() && Token::determineTokenType(toLowerCase(lexeme)) != Token::tokenType::Undefined) {
+	  tokens.emplace_back(toLowerCase(lexeme));
 	  lexeme = "";
 	}
   }
