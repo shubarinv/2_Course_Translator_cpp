@@ -18,7 +18,7 @@
 class Parser {
  private:
   Lexer *lexer;
-  Node *tree;
+  Node *tree{};
 
  public:
   void parse() {
