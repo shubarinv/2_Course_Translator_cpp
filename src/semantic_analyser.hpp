@@ -38,6 +38,11 @@ class SemanticAnalyser {
 	    variables->addVar(new Variable(varName->value,Variable::determineVarType(varType)));
 	  }
 	}
+	else if(currentNode->type==Node::nodeType::VAR){
+	  if(!variables->isVarDefined(currentNode->value)){
+		throw VariableNotDefinedError(currentNode->value);
+	  }
+	}
 
 	lookForVariableDeclaration(currentNode->op1);
 	lookForVariableDeclaration(currentNode->op2);

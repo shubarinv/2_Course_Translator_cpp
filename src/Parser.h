@@ -1458,6 +1458,9 @@ class Parser {
 	  node->op3 = new StringNode(lexer->getCurrentToken()->getText());
 	  lexer->nextToken();
 	  node->op4 = Expression();
+	  if(node->op4==nullptr){
+	    throw ParsingError("Expression","Nothing");
+	  }
 	  expect(Token::tokenType::DO_Keyword);
 	  node->list.push_back(Statement());
 	}

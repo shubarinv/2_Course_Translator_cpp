@@ -50,9 +50,9 @@ class VariableNotDefinedError : public std::exception {
   std::string message;
  public:
   explicit VariableNotDefinedError(std::string expected) : message(std::move(expected)) {
-	std::string error = "Variable with name: ";
+	std::string error = "Variable with name: \'";
 	error += message;
-	error += " was not defined";
+	error += "\' was not defined";
 	message = error;
   }
   virtual const char *what() const throw() {
