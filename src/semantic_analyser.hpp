@@ -22,10 +22,12 @@ class SemanticAnalyser {
 	analyze();
   }
  private:
+
   void analyze() {
 	lookForVariableDeclaration(tree);
 	variables->printToConsole();
 	checkBinOps(tree);
+	checkForTypeMismatch(tree);
   }
   void lookForVariableDeclaration(Node *currentNode) {
 	// если текущая нода ноль, то делать с ней ничего нельзя
@@ -60,9 +62,18 @@ class SemanticAnalyser {
 
 	if (currentNode->type == Node::nodeType::BINOP) {
 	  if (currentNode->value == ":=") {
-
 	  } else if (currentNode->value == "*" || currentNode->value == "/" || currentNode->value == "+" || currentNode->value == "-") {
-		if (currentNode->op2->type == Node::nodeType::CONSTANT) {}
+		if (currentNode->op2->type == Node::nodeType::CONSTANT) {
+		  if (!Variable::areTypesCompatible(variables->getVarByName(currentNode->op2->value)->getType(),
+											Variable::varType::INTEGER)) {
+			throw std::runtime_error(
+				"Var type mismatch: cannot \'" + currentNode->value + "\' " + currentNode->op1->value +
+					"(" +
+					Variable::varTypeToString(variables->getVarByName(currentNode->op1->value)->getType()) + ") and "
+					+ currentNode->op2->value + "(" +
+					Variable::varTypeToString(Variable::varType::INTEGER) + ")");
+		  }
+		}
 		if (currentNode->op2->type == Node::nodeType::VAR) {
 
 		  if (!Variable::areTypesCompatible(variables->getVarByName(currentNode->op2->value)->getType(),
@@ -84,6 +95,44 @@ class SemanticAnalyser {
 	checkBinOps(currentNode->op4);
 	for (auto &node :currentNode->list) {
 	  checkBinOps(node);
+	}
+  }
+  void checkForTypeMismatch(Node *currentNode) {
+	// если текущая нода ноль, то делать с ней ничего нельзя
+	// так что выходим из функции
+	if (currentNode == nullptr)
+	  return;
+
+	if (currentNode->type == Node::nodeType::FOR_LOOP) {
+	  if (currentNode->op2->type == Node::nodeType::CONSTANT) {
+		if (!Variable::areTypesCompatible(Variable::varType::INTEGER,
+										  variables->getVarByName(currentNode->op4->value)->getType())) {
+		  throw TypeMismatchError(Variable::varTypeToString(Variable::varType::INTEGER),
+								  Variable::varTypeToString(variables->getVarByName(currentNode->op4->value)->getType()));
+		}
+	  } else if (currentNode->op4->type == Node::nodeType::CONSTANT) {
+		if (!Variable::areTypesCompatible(variables->getVarByName(currentNode->op2->value)->getType(),
+										  Variable::varType::INTEGER)) {
+
+		  throw TypeMismatchError(Variable::varTypeToString(variables->getVarByName(currentNode->op4->value)->getType()),
+								  Variable::varTypeToString(Variable::varType::INTEGER));
+		}
+	  } else if (currentNode->op2->type == Node::nodeType::CONSTANT &&
+		  currentNode->op4->type == Node::nodeType::CONSTANT) {
+
+	  } else if (!Variable::areTypesCompatible(variables->getVarByName(currentNode->op2->value)->getType(),
+											   variables->getVarByName(currentNode->op4->value)->getType())) {
+		throw TypeMismatchError(Variable::varTypeToString(variables->getVarByName(currentNode->op2->value)->getType()),
+								Variable::varTypeToString(variables->getVarByName(currentNode->op4->value)->getType()));
+	  }
+	}
+
+	checkForTypeMismatch(currentNode->op1);
+	checkForTypeMismatch(currentNode->op2);
+	checkForTypeMismatch(currentNode->op3);
+	checkForTypeMismatch(currentNode->op4);
+	for (auto &node :currentNode->list) {
+	  checkForTypeMismatch(node);
 	}
   }
 };
