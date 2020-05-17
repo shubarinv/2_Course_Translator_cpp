@@ -63,27 +63,25 @@ class SemanticAnalyser {
 	if (currentNode->type == Node::nodeType::BINOP) {
 	  if (currentNode->value == ":=") {
 	  } else if (currentNode->value == "*" || currentNode->value == "/" || currentNode->value == "+" || currentNode->value == "-") {
-		if (currentNode->op2->type == Node::nodeType::CONSTANT) {
-		  if (!Variable::areTypesCompatible(variables->getVarByName(currentNode->op2->value)->getType(),
-											Variable::varType::INTEGER)) {
-			throw std::runtime_error(
-				"Var type mismatch: cannot \'" + currentNode->value + "\' " + currentNode->op1->value +
-					"(" +
-					Variable::varTypeToString(variables->getVarByName(currentNode->op1->value)->getType()) + ") and "
-					+ currentNode->op2->value + "(" +
-					Variable::varTypeToString(Variable::varType::INTEGER) + ")");
+		if (currentNode->op1->type == Node::nodeType::CONSTANT || currentNode->op2->type == Node::nodeType::CONSTANT) {
+		  if (currentNode->op1->type == Node::nodeType::CONSTANT) {
+			if (!Variable::areTypesCompatible(Variable::varType::INTEGER, variables->getVarByName(currentNode->op2->value)->getType())) {
+			  throw TypeMismatchError(Variable::varTypeToString(Variable::varType::INTEGER),
+									  Variable::varTypeToString(variables->getVarByName(currentNode->op2->value)->getType()));
+			}
+		  } else if (currentNode->op2->type == Node::nodeType::CONSTANT) {
+			if (!Variable::areTypesCompatible(variables->getVarByName(currentNode->op1->value)->getType(),
+											  Variable::varType::INTEGER)) {
+			  throw TypeMismatchError(Variable::varTypeToString(variables->getVarByName(currentNode->op1->value)->getType()),
+									  Variable::varTypeToString(Variable::varType::INTEGER));
+			}
 		  }
 		}
 		if (currentNode->op2->type == Node::nodeType::VAR) {
-
 		  if (!Variable::areTypesCompatible(variables->getVarByName(currentNode->op2->value)->getType(),
 											variables->getVarByName(currentNode->op1->value)->getType())) {
-			throw std::runtime_error(
-				"Var type mismatch: cannot \'" + currentNode->value + "\' " + currentNode->op1->value +
-					"(" +
-					Variable::varTypeToString(variables->getVarByName(currentNode->op1->value)->getType()) + ") and "
-					+ currentNode->op2->value + "(" +
-					Variable::varTypeToString(variables->getVarByName(currentNode->op2->value)->getType()) + ")");
+			throw TypeMismatchError(Variable::varTypeToString(variables->getVarByName(currentNode->op1->value)->getType()),
+									Variable::varTypeToString(variables->getVarByName(currentNode->op2->value)->getType()));
 		  }
 		}
 
