@@ -60,32 +60,33 @@ class SemanticAnalyser {
 	if (currentNode == nullptr)
 	  return;
 
-	if (currentNode->type == Node::nodeType::BINOP) {
-	  if (currentNode->value == ":=") {
-	  } else if (currentNode->value == "*" || currentNode->value == "/" || currentNode->value == "+" || currentNode->value == "-") {
-		if (currentNode->op1->type == Node::nodeType::CONSTANT || currentNode->op2->type == Node::nodeType::CONSTANT) {
-		  if (currentNode->op1->type == Node::nodeType::CONSTANT) {
-			if (!Variable::areTypesCompatible(Variable::varType::INTEGER, variables->getVarByName(currentNode->op2->value)->getType())) {
-			  throw TypeMismatchError(Variable::varTypeToString(Variable::varType::INTEGER),
-									  Variable::varTypeToString(variables->getVarByName(currentNode->op2->value)->getType()));
-			}
-		  } else if (currentNode->op2->type == Node::nodeType::CONSTANT) {
-			if (!Variable::areTypesCompatible(variables->getVarByName(currentNode->op1->value)->getType(),
-											  Variable::varType::INTEGER)) {
-			  throw TypeMismatchError(Variable::varTypeToString(variables->getVarByName(currentNode->op1->value)->getType()),
-									  Variable::varTypeToString(Variable::varType::INTEGER));
-			}
+	Node *tmp = currentNode;
+	Variable::varType prevVarType = Variable::varType::UNKNOWN;
+	while (tmp != nullptr) {
+	  if (tmp->type == Node::nodeType::BINOP) {
+		if (tmp->op2->type == Node::nodeType::BINOP) {
+		  if (prevVarType == Variable::varType::UNKNOWN) {
+			prevVarType = variables->getVarType(tmp->op1->value);
+		  } else if (!Variable::areTypesCompatible(variables->getVarType(tmp->op1->value), prevVarType)) {
+			throw TypeMismatchError(Variable::varTypeToString(variables->getVarType(tmp->op1->value)),
+									Variable::varTypeToString(prevVarType));
 		  }
 		}
-		if (currentNode->op2->type == Node::nodeType::VAR) {
-		  if (!Variable::areTypesCompatible(variables->getVarByName(currentNode->op2->value)->getType(),
-											variables->getVarByName(currentNode->op1->value)->getType())) {
-			throw TypeMismatchError(Variable::varTypeToString(variables->getVarByName(currentNode->op1->value)->getType()),
-									Variable::varTypeToString(variables->getVarByName(currentNode->op2->value)->getType()));
+		else if (prevVarType != Variable::varType::UNKNOWN) {
+		  if (!Variable::areTypesCompatible(variables->getVarType(tmp->op1->value), prevVarType)) {
+			throw TypeMismatchError(Variable::varTypeToString(prevVarType),
+									Variable::varTypeToString(variables->getVarType(tmp->op1->value)));
+		  } else if (!Variable::areTypesCompatible(prevVarType, variables->getVarType(tmp->op2->value))) {
+			throw TypeMismatchError(Variable::varTypeToString(prevVarType),
+									Variable::varTypeToString(variables->getVarType(tmp->op2->value)));
 		  }
+		} else if (!Variable::areTypesCompatible(variables->getVarType(tmp->op1->value), variables->getVarType(tmp->op2->value))) {
+		  throw TypeMismatchError(Variable::varTypeToString(variables->getVarType(tmp->op1->value)),
+								  Variable::varTypeToString(variables->getVarType(tmp->op2->value)));
 		}
-
+		if (tmp->op2->type != Node::nodeType::BINOP)break;
 	  }
+	  tmp = tmp->op2;
 	}
 	checkBinOps(currentNode->op1);
 	checkBinOps(currentNode->op2);
@@ -95,6 +96,7 @@ class SemanticAnalyser {
 	  checkBinOps(node);
 	}
   }
+
   void checkForTypeMismatch(Node *currentNode) {
 	// если текущая нода ноль, то делать с ней ничего нельзя
 	// так что выходим из функции

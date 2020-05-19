@@ -56,6 +56,8 @@ class Variable {
 	  return varType::STRING;
 	else if (_value == "widechar")
 	  return varType::WIDECHAR;
+	else if (_value == "Num")
+	  return varType::REAL;
 	else return varType::UNKNOWN;
   }
   static std::string varTypeToString(varType type) {
