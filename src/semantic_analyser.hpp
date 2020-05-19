@@ -5,6 +5,10 @@
 #ifndef SPO_COMPILER_SRC_SEMANTIC_ANALYSER_HPP_
 #define SPO_COMPILER_SRC_SEMANTIC_ANALYSER_HPP_
 
+/* TODO: local variables
+   TODO: func required and func call arg type check
+   TODO: func retun type check
+   */
 #include "Node.hpp"
 #include "Parser.h"
 #include "variable_table.hpp"
