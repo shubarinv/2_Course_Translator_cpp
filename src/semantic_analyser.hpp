@@ -6,8 +6,10 @@
 #define SPO_COMPILER_SRC_SEMANTIC_ANALYSER_HPP_
 
 /* TODO: local variables
+   TODO: check if procedure was defined
+   TODO: check if function was defined
    TODO: func required and func call arg type check
-   TODO: func retun type check
+   TODO: func return type check
    */
 #include "Node.hpp"
 #include "Parser.h"
