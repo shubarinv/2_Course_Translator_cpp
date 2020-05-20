@@ -31,9 +31,10 @@ class SemanticAnalyser {
 	analyze();
   }
  private:
-
+  Node *nodeToSkip = nullptr;
   void analyze() {
 	lookForVariableDeclaration(tree);
+	functions->printToConsole();
 	variables->printToConsole();
 	checkBinOps(tree);
 	checkForTypeMismatch(tree);
@@ -45,6 +46,12 @@ class SemanticAnalyser {
 	  return;
 	if (currentNode->type == Node::nodeType::PROCEDURE || currentNode->type == Node::nodeType::FUNCTION) {
 	  functions->addFunction(new Function(currentNode->value));
+	  Node *PathToVariables = currentNode->op1->op1->list.front();
+	  std::string varType = PathToVariables->op2->value;
+	  for (auto &varName:PathToVariables->op1->list) {
+		functions->getVarByName(currentNode->value)->variables.addVar(new Variable(varName->value, Variable::determineVarType(varType)));
+	  }
+	  nodeToSkip = currentNode->op1->op1;
 	}
 	if (currentNode->type == Node::nodeType::VARDECL) {
 	  std::string varType = currentNode->op2->value;
@@ -56,13 +63,14 @@ class SemanticAnalyser {
 		throw VariableNotDefinedError(currentNode->value);
 	  }
 	}
-
-	lookForVariableDeclaration(currentNode->op1);
-	lookForVariableDeclaration(currentNode->op2);
-	lookForVariableDeclaration(currentNode->op3);
-	lookForVariableDeclaration(currentNode->op4);
-	for (auto &node :currentNode->list) {
-	  lookForVariableDeclaration(node);
+	if (currentNode != nodeToSkip) {
+	  lookForVariableDeclaration(currentNode->op1);
+	  lookForVariableDeclaration(currentNode->op2);
+	  lookForVariableDeclaration(currentNode->op3);
+	  lookForVariableDeclaration(currentNode->op4);
+	  for (auto &node :currentNode->list) {
+		lookForVariableDeclaration(node);
+	  }
 	}
   }
   void checkBinOps(Node *currentNode) {
@@ -82,8 +90,7 @@ class SemanticAnalyser {
 			throw TypeMismatchError(Variable::varTypeToString(variables->getVarType(tmp->op1->value)),
 									Variable::varTypeToString(prevVarType));
 		  }
-		}
-		else if (prevVarType != Variable::varType::UNKNOWN) {
+		} else if (prevVarType != Variable::varType::UNKNOWN) {
 		  if (!Variable::areTypesCompatible(variables->getVarType(tmp->op1->value), prevVarType)) {
 			throw TypeMismatchError(Variable::varTypeToString(prevVarType),
 									Variable::varTypeToString(variables->getVarType(tmp->op1->value)));

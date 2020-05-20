@@ -10,7 +10,7 @@
 class NotImplementedException : public std::logic_error {
  private:
 
-  std::string _text;;
+  std::string _text;
 
  public:
   NotImplementedException() : NotImplementedException("Not Implemented", __FUNCTION__) {
