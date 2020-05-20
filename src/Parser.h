@@ -195,6 +195,8 @@ class Parser {
 	node->op2 = Package();
 	node->op3 = Library();
 	node->op4 = Unit();
+	if (node->op2 == nullptr && node->op3 == nullptr && node->op4 == nullptr)
+	  return node->op1;
 	return node;
   }
 
@@ -224,6 +226,9 @@ class Parser {
 	  node->op3 = ProgramBlock();
 	}
 	expect(Token::tokenType::DOT);
+	if (node->op2 == nullptr && node->op3 == nullptr && node->op4 == nullptr) {
+	  return node->op1;
+	}
 	return node;
   }
 
@@ -289,6 +294,7 @@ class Parser {
 	} else {
 	  node->op2 = Block();
 	}
+	if (node->op2 == nullptr)return node->op1;
 	return node;
   }
 
@@ -378,6 +384,7 @@ class Parser {
 	else {
 	  node->op1 = CompoundStmt();
 	}
+	if (node->op2 == nullptr)return node->op1;
 	return node;
   }
 
@@ -411,6 +418,7 @@ class Parser {
 		node->list.push_back(tmp);
 	  }
 	}
+	if (node->list.size() == 1) { return node->list.back(); }
 	return node;
   }
 
@@ -1523,12 +1531,13 @@ class Parser {
 	node->op1 = ProcedureHeading();
 	if (node->op1 == nullptr)
 	  return nullptr;
+	node = node->op1;
 	expect(Token::tokenType::Semicolon);
-	node->op2 = Directive();
-	if (node->op2 == nullptr) {
-	  node->op2 = Block();
+	node->op1 = Directive();
+	if (node->op1 == nullptr) {
+	  node->op1 = Block();
 	} else {
-	  node->op3 = Block();
+	  node->op2 = Block();
 	}
 	expect(Token::tokenType::Semicolon);
 	return node;

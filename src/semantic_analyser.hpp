@@ -40,7 +40,6 @@ class SemanticAnalyser {
 	// так что выходим из функции
 	if (currentNode == nullptr)
 	  return;
-
 	if (currentNode->type == Node::nodeType::VARDECL) {
 	  std::string varType = currentNode->op2->value;
 	  for (auto &varName:currentNode->op1->list) {
