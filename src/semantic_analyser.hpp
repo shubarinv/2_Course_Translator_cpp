@@ -14,17 +14,20 @@
 #include "Node.hpp"
 #include "Parser.h"
 #include "variable_table.hpp"
+#include "function_table.hpp"
 class SemanticAnalyser {
  private:
   Node *tree{};
   Parser *parser{};
-  VariableTable *variables;
+  VariableTable *variables{};
+  FunctionTable *functions{};
  public:
   explicit SemanticAnalyser(const std::string &_filename) {
 	parser = new Parser(_filename);
 	parser->parse();
 	tree = parser->GetTree();
 	variables = new VariableTable();
+	functions = new FunctionTable();
 	analyze();
   }
  private:
@@ -40,6 +43,9 @@ class SemanticAnalyser {
 	// так что выходим из функции
 	if (currentNode == nullptr)
 	  return;
+	if (currentNode->type == Node::nodeType::PROCEDURE || currentNode->type == Node::nodeType::FUNCTION) {
+	  functions->addFunction(new Function(currentNode->value));
+	}
 	if (currentNode->type == Node::nodeType::VARDECL) {
 	  std::string varType = currentNode->op2->value;
 	  for (auto &varName:currentNode->op1->list) {

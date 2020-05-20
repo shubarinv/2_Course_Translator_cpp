@@ -10,6 +10,11 @@
 #include "variable_table.hpp"
 class Function {
   std::string name;
+ public:
+  [[nodiscard]] const std::string &getName() const {
+	return name;
+  }
+ private:
   Variable::varType returnType = Variable::varType::UNKNOWN;
  public:
   explicit Function(std::string _name) : name(std::move(_name)) {}
