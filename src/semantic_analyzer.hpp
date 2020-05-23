@@ -2,19 +2,19 @@
 // Created by Vladimir Shubarin on 17.05.2020.
 //
 
-#ifndef SPO_COMPILER_SRC_SEMANTIC_ANALYSER_HPP_
-#define SPO_COMPILER_SRC_SEMANTIC_ANALYSER_HPP_
+#ifndef SPO_COMPILER_SRC_SEMANTIC_ANALYZER_HPP_
+#define SPO_COMPILER_SRC_SEMANTIC_ANALYZER_HPP_
 
 #include "Node.hpp"
 #include "Parser.h"
 #include "variable_table.hpp"
-class SemanticAnalyser {
+class SemanticAnalyzer {
  private:
   Node *tree{};
   Parser *parser{};
   VariableTable *variables;
  public:
-  explicit SemanticAnalyser(const std::string &_filename) {
+  explicit SemanticAnalyzer(const std::string &_filename) {
 	parser = new Parser(_filename);
 	parser->parse();
 	tree = parser->GetTree();
@@ -137,4 +137,4 @@ class SemanticAnalyser {
   }
 };
 
-#endif //SPO_COMPILER_SRC_SEMANTIC_ANALYSER_HPP_
+#endif //SPO_COMPILER_SRC_SEMANTIC_ANALYZER_HPP_
