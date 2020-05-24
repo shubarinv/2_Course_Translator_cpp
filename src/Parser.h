@@ -756,8 +756,12 @@ class Parser {
 	node->op1 = ConstExpr();
 	if (node->op1 == nullptr)
 	  return nullptr;
-	expect(Token::tokenType::DOT);
-	expect(Token::tokenType::DOT);
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::DOT) {
+	  expect(Token::tokenType::DOT);
+	} else {
+	  lexer->pushToFront(node->op1->value);
+	  return nullptr;
+	}
 	node->value = "..";
 	node->op2 = ConstExpr();
 	if (node->op1 == nullptr || node->op2 == nullptr) {
@@ -976,6 +980,12 @@ class Parser {
 	node->op1 = tmp;
 	node->op2 = RelOp();
 	if (node->op2 == nullptr) {
+	  if (tmp->type == Node::nodeType::VAR) {
+		tmp = funcCall(node->op1);
+		if (tmp != nullptr) {
+		  return tmp;
+		}
+	  }
 	  return node->op1;
 	}
 	node->op3 = SimpleExpression();
@@ -1242,7 +1252,7 @@ class Parser {
 		return node;
 	  }
 	  node->list.push_back(tmp);
-	  if (node->list.back() != nullptr)
+	  if (tmp != nullptr)
 		expect(Token::tokenType::Semicolon);
 	}
 	return node;
@@ -1285,24 +1295,33 @@ class Parser {
 	return node;
   }
 
-  Node *funcCall() {
+  Node *funcCall(Node *var = nullptr) {
 	/*
-	 * funcCall -> '(' exprList ')' ';'
-	 * funcCall -> '('')' ';'
-	 * funcCall -> ';'
+	 * funcCall -> '(' exprList ')'
+	 * funcCall -> '('')'
 	 */
 	Node *node{nullptr};
-	if (lexer->getCurrentToken()->getType() == Token::tokenType::Id) {
-	  node = new Node(Node::nodeType::FUNCCALL);
-	  node->value = lexer->getCurrentToken()->getText();
-	  lexer->nextToken();
-	  if (lexer->getCurrentToken()->getType() == Token::tokenType::LPAR) expect(Token::tokenType::LPAR);
-	  else {
-		lexer->pushToFront(node->value);
+	if (var != nullptr) {
+	  if (lexer->getCurrentToken()->getType() != Token::tokenType::LPAR) {
 		return nullptr;
+	  } else {
+		node = new Node(Node::nodeType::FUNCCALL, var->value);
+		expect(Token::tokenType::LPAR);
+		node->op1 = ExprList();
+		expect(Token::tokenType::RPAR);
 	  }
-	  node->op1 = ExprList();
-	  expect(Token::tokenType::RPAR);
+	} else if (lexer->getCurrentToken()->getType() == Token::tokenType::Id) {
+	  Token tmpToken = *lexer->getCurrentToken();
+	  lexer->nextToken();
+	  if (lexer->getCurrentToken()->getType() != Token::tokenType::LPAR) {
+		lexer->pushToFront(tmpToken.getText());
+		return nullptr;
+	  } else {
+		node = new Node(Node::nodeType::FUNCCALL, tmpToken.getText());
+		expect(Token::tokenType::LPAR);
+		node->op1 = ExprList();
+		expect(Token::tokenType::RPAR);
+	  }
 	} else if (lexer->getCurrentToken()->getType() == Token::tokenType::WRITE_Keyword)
 	  return Write();
 	else if (lexer->getCurrentToken()->getType() == Token::tokenType::READ_Keyword)
