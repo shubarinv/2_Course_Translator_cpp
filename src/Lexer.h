@@ -70,6 +70,10 @@ class Lexer {
 	}
   }
 
+  static bool isWordSep(char character) {
+	return character == '\0' || character == ' ' || character == '\t' || character == '\n' || character == '\r';
+  }
+
  public:
   explicit Lexer(const std::string &_filename) { loadFile(_filename); }
 
@@ -85,26 +89,6 @@ class Lexer {
 		if (!lexeme.empty() && Token::determineTokenType(toLowerCase(lexeme)) != Token::tokenType::Undefined) {
 		  tokens.emplace_back(toLowerCase(lexeme));
 		  lexeme = "";
-		}
-	  } else if (Token::determineTokenType(getString(program[i])) != Token::tokenType::Undefined && ///< если текущий символ мб ток.
-		  Token::determineTokenType(getString(program[i])) != Token::tokenType::Id &&
-		  Token::determineTokenType(getString(program[i])) != Token::tokenType::Num &&
-		  Token::determineTokenType(getString(program[i])) != Token::tokenType::STRING) {
-		if (Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) != Token::tokenType::Undefined &&
-			Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) != Token::tokenType::Id &&
-			Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) != Token::tokenType::Num) {
-		  if (!lexeme.empty()) {
-			tokens.emplace_back(toLowerCase(lexeme));
-			lexeme = "";
-		  }
-		  tokens.emplace_back(getString(program[i]) + getString(program[i + 1]));
-		  i++;
-		} else {
-		  if (!lexeme.empty()) {
-			tokens.emplace_back(toLowerCase(lexeme));
-			lexeme = "";
-		  }
-		  tokens.emplace_back(getString(program[i]));
 		}
 	  } else if (program[i] == '\'' || program[i] == '"') { ///<if string
 		if (!lexeme.empty()) {
@@ -123,18 +107,20 @@ class Lexer {
 		  tokens.emplace_back(toLowerCase(lexeme));
 		  lexeme = "";
 		}
-	  } else if (Token::determineTokenType(toLowerCase(lexeme)) != Token::tokenType::Undefined &&
-		  Token::determineTokenType(toLowerCase(lexeme)) != Token::tokenType::Id &&
-		  Token::determineTokenType(toLowerCase(lexeme)) != Token::tokenType::Num) { ///< if lexeme is known by Token
-		if (program[i] == 'l' && program[i + 1] == 'n') {
-		  lexeme += "ln";
+	  } else if (Token::determineTokenType(getString(program[i])) != Token::determineTokenType(getString(program[i + 1]))) {
+		lexeme += program[i];
+		if (Token::determineTokenType(lexeme + getString(program[i + 1])) == Token::tokenType::Id) { continue; }
+		if ((Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) == Token::tokenType::Assignment ||
+			Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) == Token::tokenType::Comparison) &&
+			getString(program[i]) + getString(program[i + 1]) != "in") {
+
+		  lexeme += program[i + 1];
 		  i++;
-		}///< this is for writeln() and readln()
+		}
 		tokens.emplace_back(toLowerCase(lexeme));
 		lexeme = "";
-	  } else {
-		lexeme += getString(program[i]);
-	  }
+	  } else
+		lexeme += program[i];
 	}
 	if (!lexeme.empty() && Token::determineTokenType(toLowerCase(lexeme)) != Token::tokenType::Undefined) {
 	  tokens.emplace_back(toLowerCase(lexeme));
@@ -142,9 +128,11 @@ class Lexer {
 	}
 	cout << "\n\n---- TOKENIZATION DONE -----\n\n" << endl;
   }
+  
   void pushToFront(const std::string& token) {
 	tokens.emplace_front(token);
   }
+  
   void printToFile() {
 	using namespace std;
 	ofstream out("output.txt");

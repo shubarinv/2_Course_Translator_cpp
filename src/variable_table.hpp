@@ -26,6 +26,14 @@ class VariableTable {
 	return getVarByName(_val)->getType();
   }
 
+  Variable::varType getVarType(const std::string &_val) {
+	// since what semanticAnalyser passes here might not be a varName we need to check and determine type of what was passed
+	if (Token::determineTokenType(_val) != Token::tokenType::Id) {
+	  return Variable::determineVarType(Token::typeToString(Token::determineTokenType(_val)));
+	}
+	return getVarByName(_val)->getType();
+  }
+
   Variable *getVarByName(const std::string &_name) {
 	for (auto &var : variables) {
 	  if (var->getName() == _name) {

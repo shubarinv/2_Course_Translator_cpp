@@ -61,6 +61,7 @@ class VariableNotDefinedError : public std::exception {
   }
 };
 
+
 class FunctionNotDefinedError : public std::exception {
  private:
   std::string message;
