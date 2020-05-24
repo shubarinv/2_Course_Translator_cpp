@@ -112,15 +112,19 @@ class Token {
 		  return !std::isdigit(c);
 		}) == str.end();
   }
-
+  static std::string toLowerCase(std::string str) {
+	for (auto &c: str) c = tolower(c);
+	return str;
+  }
  public:
-  static tokenType determineTokenType(const std::string &str) {
+  static tokenType determineTokenType(std::string str) {
 	using namespace std;
 	boost::regex IdRegex("^[a-zA-Z_$][a-zA-Z_$0-9]*$");
 	boost::smatch what;
+	str = toLowerCase(str);
 
 	try { // checking if string is double
-	  double value = std::stod(str);
+	  [[maybe_unused]] double value = std::stod(str);
 	  return tokenType::Num;
 	} catch (std::exception &e) {
 	}
