@@ -109,9 +109,11 @@ class Lexer {
 		}
 	  } else if (Token::determineTokenType(getString(program[i])) != Token::determineTokenType(getString(program[i + 1]))) {
 		lexeme += program[i];
+		if (Token::determineTokenType(lexeme + getString(program[i + 1])) == Token::tokenType::Id) { continue; }
 		if ((Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) == Token::tokenType::Assignment ||
 			Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) == Token::tokenType::Comparison) &&
 			getString(program[i]) + getString(program[i + 1]) != "in") {
+
 		  lexeme += program[i + 1];
 		  i++;
 		}

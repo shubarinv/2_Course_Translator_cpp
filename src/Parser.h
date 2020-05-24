@@ -756,8 +756,12 @@ class Parser {
 	node->op1 = ConstExpr();
 	if (node->op1 == nullptr)
 	  return nullptr;
-	expect(Token::tokenType::DOT);
-	expect(Token::tokenType::DOT);
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::DOT) {
+	  expect(Token::tokenType::DOT);
+	} else {
+	  lexer->pushToFront(node->op1->value);
+	  return nullptr;
+	}
 	node->value = "..";
 	node->op2 = ConstExpr();
 	if (node->op1 == nullptr || node->op2 == nullptr) {
@@ -1287,20 +1291,13 @@ class Parser {
 
   Node *funcCall() {
 	/*
-	 * funcCall -> '(' exprList ')' ';'
-	 * funcCall -> '('')' ';'
-	 * funcCall -> ';'
+	 * funcCall -> '(' exprList ')'
+	 * funcCall -> '('')'
 	 */
 	Node *node{nullptr};
-	if (lexer->getCurrentToken()->getType() == Token::tokenType::Id) {
-	  node = new Node(Node::nodeType::FUNCCALL);
-	  node->value = lexer->getCurrentToken()->getText();
-	  lexer->nextToken();
-	  if (lexer->getCurrentToken()->getType() == Token::tokenType::LPAR) expect(Token::tokenType::LPAR);
-	  else {
-		lexer->pushToFront(node->value);
-		return nullptr;
-	  }
+	std::cout << "current token: " << lexer->getCurrentToken()->getText() << std::endl;
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::LPAR) {
+	  expect(Token::tokenType::LPAR);
 	  node->op1 = ExprList();
 	  expect(Token::tokenType::RPAR);
 	} else if (lexer->getCurrentToken()->getType() == Token::tokenType::WRITE_Keyword)
