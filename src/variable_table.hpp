@@ -11,7 +11,20 @@ class VariableTable {
  public:
   ~VariableTable() { variables.clear(); }
 
-  void addVar(Variable *var) { variables.push_back(var); }
+  void addVar(Variable *var) {
+	if (!isVarDefined(var->getName()))
+	  variables.push_back(var);
+	else
+	  throw NotImplementedException("var redef");
+  }
+
+  Variable::varType getVarType(const std::string &_val) {
+	// since what semanticAnalyser passes here might not be a varName we need to check and determine type of what was passed
+	if (Token::determineTokenType(_val) != Token::tokenType::Id) {
+	  return Variable::determineVarType(Token::typeToString(Token::determineTokenType(_val)));
+	}
+	return getVarByName(_val)->getType();
+  }
 
   Variable::varType getVarType(const std::string &_val) {
 	// since what semanticAnalyser passes here might not be a varName we need to check and determine type of what was passed

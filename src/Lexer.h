@@ -126,13 +126,13 @@ class Lexer {
 	  tokens.emplace_back(toLowerCase(lexeme));
 	  lexeme = "";
 	}
-	printAllTokens();
-	cout << "\n\n---- TOKENIZATION DONE -----\n\n" <<
-		 endl;
+	cout << "\n\n---- TOKENIZATION DONE -----\n\n" << endl;
   }
-  void pushToFront(const std::string &token) {
+  
+  void pushToFront(const std::string& token) {
 	tokens.emplace_front(token);
   }
+  
   void printToFile() {
 	using namespace std;
 	ofstream out("output.txt");

@@ -10,7 +10,7 @@
 class NotImplementedException : public std::logic_error {
  private:
 
-  std::string _text;;
+  std::string _text;
 
  public:
   NotImplementedException() : NotImplementedException("Not Implemented", __FUNCTION__) {
@@ -61,11 +61,27 @@ class VariableNotDefinedError : public std::exception {
   }
 };
 
+
+class FunctionNotDefinedError : public std::exception {
+ private:
+  std::string message;
+ public:
+  explicit FunctionNotDefinedError(std::string expected) : message(std::move(expected)) {
+	std::string error = "Variable with name: \'";
+	error += message;
+	error += "\' was not defined";
+	message = error;
+  }
+  virtual const char *what() const throw() {
+	return message.c_str();
+  }
+};
+
 class TypeMismatchError : public std::exception {
  private:
   std::string message;
  public:
-  explicit TypeMismatchError(const std::string& type1,const std::string& type2) : message(" ") {
+  explicit TypeMismatchError(const std::string &type1, const std::string &type2) : message(" ") {
 	std::string error = "Var type mismatch: expected " + type1 + " got "+ type2;
 	message = error;
   }

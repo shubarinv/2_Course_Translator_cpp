@@ -76,8 +76,6 @@ class Parser {
 	  case Node::nodeType::EXPR:cout << "EXPR ";
 		break;
 	  case Node::nodeType::CONSTANT:cout << "CONST ";
-		// так как имеет значение, то выводим его в скобках
-		cout << "(" << currentNode->value << ")";
 		break;
 	  case Node::nodeType::ADD:cout << "ADD ";
 		break;
@@ -96,18 +94,14 @@ class Parser {
 	  case Node::nodeType::ELSE:cout << "ELSE ";
 		break;
 	  case Node::nodeType::VAR:cout << "VAR ";
-		cout << "(" << currentNode->value << ")";
 		break;
 	  case Node::nodeType::BINOP:cout << "BINOP ";
-		cout << "(" << currentNode->value << ")";
 		break;
 	  case Node::nodeType::STR:cout << "STR ";
-		cout << "(" << currentNode->value << ")";
 		break;
 	  case Node::nodeType::FACTOR:cout << "FACTOR ";
 		break;
 	  case Node::nodeType::PAR:cout << "PAR";
-		cout << " ('" << currentNode->value << "')";
 		break;
 	  case Node::nodeType::TERM:cout << "TERM ";
 		break;
@@ -120,7 +114,6 @@ class Parser {
 	  case Node::nodeType::VARDECL:cout << "VARDECL";
 		break;
 	  case Node::nodeType::VARTYPE:cout << "VARTYPE";
-		cout << " ('" << currentNode->value << "')";
 		break;
 	  case Node::nodeType::DECL:cout << "DECL ";
 		break;
@@ -175,9 +168,10 @@ class Parser {
 	  case Node::nodeType::FUNCTION:cout << "FUNCTION";
 		break;
 	  case Node::nodeType::FUNCCALL:cout << "FUNC_CALL";
-		cout << " ('" << currentNode->value << "')";
-		break;
+    break;
 	}
+	if (currentNode->value != " ")
+	  cout << "(" << currentNode->value << ")";
 	if (bAddNewline)
 	  cout << endl;
 
@@ -201,6 +195,8 @@ class Parser {
 	node->op2 = Package();
 	node->op3 = Library();
 	node->op4 = Unit();
+	if (node->op2 == nullptr && node->op3 == nullptr && node->op4 == nullptr)
+	  return node->op1;
 	return node;
   }
 
@@ -230,6 +226,9 @@ class Parser {
 	  node->op3 = ProgramBlock();
 	}
 	expect(Token::tokenType::DOT);
+	if (node->op2 == nullptr && node->op3 == nullptr && node->op4 == nullptr) {
+	  return node->op1;
+	}
 	return node;
   }
 
@@ -295,6 +294,7 @@ class Parser {
 	} else {
 	  node->op2 = Block();
 	}
+	if (node->op2 == nullptr)return node->op1;
 	return node;
   }
 
@@ -384,6 +384,7 @@ class Parser {
 	else {
 	  node->op1 = CompoundStmt();
 	}
+	if (node->op2 == nullptr)return node->op1;
 	return node;
   }
 
@@ -417,6 +418,7 @@ class Parser {
 		node->list.push_back(tmp);
 	  }
 	}
+	if (node->list.size() == 1) { return node->list.back(); }
 	return node;
   }
 
@@ -1548,12 +1550,13 @@ class Parser {
 	node->op1 = ProcedureHeading();
 	if (node->op1 == nullptr)
 	  return nullptr;
+	node = node->op1;
 	expect(Token::tokenType::Semicolon);
-	node->op2 = Directive();
-	if (node->op2 == nullptr) {
-	  node->op2 = Block();
+	node->op1 = Directive();
+	if (node->op1 == nullptr) {
+	  node->op1 = Block();
 	} else {
-	  node->op3 = Block();
+	  node->op2 = Block();
 	}
 	expect(Token::tokenType::Semicolon);
 	return node;
@@ -1589,25 +1592,25 @@ class Parser {
 		Token::tokenType::FUNCTION_Keyword) {
 	  lexer->nextToken();
 	  node = new Node(Node::nodeType::FUNCTION);
-	  node->op1 = Ident();
-	  node->op2 = FormalParameters();
+	  node->value = Ident()->value;
+	  node->op1 = FormalParameters();
 	  expect(Token::tokenType::Colon);
-	  if (node->op2 == nullptr) {
-		node->op2 = SimpleType();
-		if (node->op2 == nullptr) {
+	  if (node->op1 == nullptr) {
+		node->op1 = SimpleType();
+		if (node->op1 == nullptr) {
 		  if (lexer->getCurrentToken()->getType() ==
 			  Token::tokenType::STRING_Keyword) {
-			node->op2 = new StringNode(lexer->getCurrentToken()->getText());
+			node->op1 = new StringNode(lexer->getCurrentToken()->getText());
 			lexer->nextToken();
 		  } else
 			expect(Token::tokenType::STRING_Keyword);
 		}
 	  } else {
-		node->op3 = SimpleType();
-		if (node->op3 == nullptr) {
+		node->op2 = SimpleType();
+		if (node->op2 == nullptr) {
 		  if (lexer->getCurrentToken()->getType() ==
 			  Token::tokenType::STRING_Keyword) {
-			node->op3 = new StringNode(lexer->getCurrentToken()->getText());
+			node->op2 = new StringNode(lexer->getCurrentToken()->getText());
 			lexer->nextToken();
 		  } else
 			expect(Token::tokenType::STRING_Keyword);
@@ -1626,8 +1629,8 @@ class Parser {
 		Token::tokenType::PROCEDURE_Keyword) {
 	  lexer->nextToken();
 	  node = new Node(Node::nodeType::PROCEDURE);
-	  node->op1 = Ident();
-	  node->op2 = FormalParameters();
+	  node->value = Ident()->value;
+	  node->op1 = FormalParameters();
 	}
 	return node;
   }
