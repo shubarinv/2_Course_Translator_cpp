@@ -35,7 +35,12 @@ class Variable {
   [[nodiscard]] varType getType() const {
 	return type;
   }
-  static varType determineVarType(const std::string &_value) {
+  static std::string toLowerCase(std::string str) {
+	for (auto &c: str) c = tolower(c);
+	return str;
+  }
+  static varType determineVarType(std::string _value) {
+	_value = toLowerCase(_value);
 	if (_value == "integer")
 	  return varType::INTEGER;
 	else if (_value == "double")
