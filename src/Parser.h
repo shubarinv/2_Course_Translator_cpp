@@ -1552,11 +1552,11 @@ class Parser {
 	  return nullptr;
 	node = node->op1;
 	expect(Token::tokenType::Semicolon);
-	node->op1 = Directive();
-	if (node->op1 == nullptr) {
-	  node->op1 = Block();
-	} else {
+	node->op2 = Directive();
+	if (node->op2 == nullptr) {
 	  node->op2 = Block();
+	} else {
+	  node->op3 = Block();
 	}
 	expect(Token::tokenType::Semicolon);
 	return node;
