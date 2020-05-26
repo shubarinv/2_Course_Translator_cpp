@@ -8,28 +8,52 @@
 #include "Node.hpp"
 #include "Parser.h"
 #include "variable_table.hpp"
+#include "function_table.hpp"
 class SemanticAnalyzer {
  private:
   Node *tree{};
   Parser *parser{};
-  VariableTable *variables;
+  VariableTable *variables{};
+  VariableTable *globalVariables{};
+  FunctionTable *functions{};
  public:
   explicit SemanticAnalyzer(const std::string &_filename) {
 	parser = new Parser(_filename);
 	parser->parse();
 	tree = parser->GetTree();
 	variables = new VariableTable();
+	globalVariables = new VariableTable();
+	functions = new FunctionTable();
 	analyze();
   }
  private:
-
   void analyze() {
-	lookForVariableDeclaration(tree);
+	std::cout << "=======================\n SemanticAnalyzer \n===========" << std::endl;
+	lookForVariableDeclaration();
+	std::cout << "Global variables:" << std::endl;
+	globalVariables->printToConsole();
+	std::cout << "In function variables: NOT IMPLEMENTED" << std::endl;
+	std::cout << "Local variables:" << std::endl;
 	variables->printToConsole();
-	checkBinOps(tree);
-	checkForTypeMismatch(tree);
   }
-  void lookForVariableDeclaration(Node *currentNode) {
+
+  void lookForVariableDeclaration() {
+	if (tree->op1->type == Node::nodeType::VAR_SECTION &&
+		tree->op2->type == Node::nodeType::STATEMENT) {
+	  std::cout << "Local vars no functions" << std::endl;
+	  declareVariables(tree->op1); // registering local variables
+	  // register local variables do not expect functions/procedures
+	} else if (tree->op1->list.front()->type == Node::nodeType::VAR_SECTION) {
+	  declareVariables(tree->op1->list.front(), nullptr, true); //  registering global variables
+	}
+	if (tree->op1->list.back()->type == Node::nodeType::VAR_SECTION) {
+	  declareVariables(tree->op1->list.back()); // registering local variables
+	} else {
+	  std::cout << "That's strange no vars??" << std::endl;
+	}
+  }
+
+  void declareVariables(Node *currentNode, Function *parentFunction = nullptr, bool bGlobal = false) {
 	// если текущая нода ноль, то делать с ней ничего нельзя
 	// так что выходим из функции
 	if (currentNode == nullptr)
@@ -38,23 +62,24 @@ class SemanticAnalyzer {
 	if (currentNode->type == Node::nodeType::VARDECL) {
 	  std::string varType = currentNode->op2->value;
 	  for (auto &varName:currentNode->op1->list) {
-		variables->addVar(new Variable(varName->value, Variable::determineVarType(varType)));
-	  }
-	} else if (currentNode->type == Node::nodeType::VAR) {
-	  if (!variables->isVarDefined(currentNode->value)) {
-		throw VariableNotDefinedError(currentNode->value);
+		if (bGlobal)
+		  globalVariables->addVar(new Variable(varName->value, Variable::determineVarType(varType)));
+		else if (parentFunction != nullptr) {
+		  parentFunction->variables.addVar(new Variable(varName->value, Variable::determineVarType(varType)));
+		} else
+		  variables->addVar(new Variable(varName->value, Variable::determineVarType(varType)));
 	  }
 	}
 
-	lookForVariableDeclaration(currentNode->op1);
-	lookForVariableDeclaration(currentNode->op2);
-	lookForVariableDeclaration(currentNode->op3);
-	lookForVariableDeclaration(currentNode->op4);
+	declareVariables(currentNode->op1, parentFunction, bGlobal);
+	declareVariables(currentNode->op2, parentFunction, bGlobal);
+	declareVariables(currentNode->op3, parentFunction, bGlobal);
+	declareVariables(currentNode->op4, parentFunction, bGlobal);
 	for (auto &node :currentNode->list) {
-	  lookForVariableDeclaration(node);
+	  declareVariables(node, parentFunction, bGlobal);
 	}
   }
-  void checkBinOps(Node *currentNode) {
+  [[deprecated]]void checkBinOps(Node *currentNode) {
 	// если текущая нода ноль, то делать с ней ничего нельзя
 	// так что выходим из функции
 	if (currentNode == nullptr)
@@ -71,8 +96,7 @@ class SemanticAnalyzer {
 			throw TypeMismatchError(Variable::varTypeToString(variables->getVarType(tmp->op1->value)),
 									Variable::varTypeToString(prevVarType));
 		  }
-		}
-		else if (prevVarType != Variable::varType::UNKNOWN) {
+		} else if (prevVarType != Variable::varType::UNKNOWN) {
 		  if (!Variable::areTypesCompatible(variables->getVarType(tmp->op1->value), prevVarType)) {
 			throw TypeMismatchError(Variable::varTypeToString(prevVarType),
 									Variable::varTypeToString(variables->getVarType(tmp->op1->value)));
@@ -97,7 +121,7 @@ class SemanticAnalyzer {
 	}
   }
 
-  void checkForTypeMismatch(Node *currentNode) {
+  [[deprecated]]  void checkForTypeMismatch(Node *currentNode) {
 	// если текущая нода ноль, то делать с ней ничего нельзя
 	// так что выходим из функции
 	if (currentNode == nullptr)
@@ -134,6 +158,10 @@ class SemanticAnalyzer {
 	for (auto &node :currentNode->list) {
 	  checkForTypeMismatch(node);
 	}
+  }
+
+  void findFunctionsAndProcedures(Node *currentNode) {
+
   }
 };
 
