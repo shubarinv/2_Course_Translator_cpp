@@ -21,10 +21,6 @@ class Lexer {
   std::deque<Token> tokens;
   std::string program;
 
-  static std::string toLowerCase(std::string str) {
-	for (auto &c: str) c = tolower(c);
-	return str;
-  }
  public:
   void nextToken() {
 	tokens.pop_front();
@@ -86,13 +82,13 @@ class Lexer {
 	  if (program[i] == '\r' || program[i] == '\t' || program[i] == '\0') //игнорируем всякую ерунду
 		continue;
 	  else if (program[i] == '\n' || program[i] == ' ') { // если перенос строки или пробел добавляем лексему
-		if (!lexeme.empty() && Token::determineTokenType(toLowerCase(lexeme)) != Token::tokenType::Undefined) {
-		  tokens.emplace_back(toLowerCase(lexeme));
+		if (!lexeme.empty() && Token::determineTokenType(lexeme) != Token::tokenType::Undefined) {
+		  tokens.emplace_back(lexeme);
 		  lexeme = "";
 		}
 	  } else if (program[i] == '\'' || program[i] == '"') { ///<if string
 		if (!lexeme.empty()) {
-		  tokens.emplace_back(toLowerCase(lexeme));
+		  tokens.emplace_back(lexeme);
 		  lexeme = "";
 		}
 		lexeme += program[i];
@@ -104,7 +100,7 @@ class Lexer {
 		}
 		lexeme += program[i];
 		if (!lexeme.empty()) {
-		  tokens.emplace_back(toLowerCase(lexeme));
+		  tokens.emplace_back(lexeme);
 		  lexeme = "";
 		}
 	  } else if (Token::determineTokenType(getString(program[i])) != Token::determineTokenType(getString(program[i + 1]))) {
@@ -117,22 +113,21 @@ class Lexer {
 		  lexeme += program[i + 1];
 		  i++;
 		}
-		tokens.emplace_back(toLowerCase(lexeme));
+		tokens.emplace_back(lexeme);
 		lexeme = "";
 	  } else
 		lexeme += program[i];
 	}
-	if (!lexeme.empty() && Token::determineTokenType(toLowerCase(lexeme)) != Token::tokenType::Undefined) {
-	  tokens.emplace_back(toLowerCase(lexeme));
+	if (!lexeme.empty() && Token::determineTokenType(lexeme) != Token::tokenType::Undefined) {
+	  tokens.emplace_back(lexeme);
 	  lexeme = "";
 	}
-	cout << "\n\n---- TOKENIZATION DONE -----\n\n" << endl;
+	cout << "\n\n---- TOKENIZATION DONE -----\n\n" <<
+		 endl;
   }
-  
-  void pushToFront(const std::string& token) {
+  void pushToFront(const std::string &token) {
 	tokens.emplace_front(token);
   }
-  
   void printToFile() {
 	using namespace std;
 	ofstream out("output.txt");
