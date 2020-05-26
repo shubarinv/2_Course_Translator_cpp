@@ -23,11 +23,12 @@ class Variable {
 	STRING,
 	UNKNOWN,
   };
-  Variable(std::string _name, varType _type) : name(std::move(_name)), type(_type) {}
+  Variable(std::string _name, varType _type, bool bIsParam = false) : name(std::move(_name)), type(_type), isParam(bIsParam) {}
 
  private:
   std::string name;
   varType type;
+  bool isParam = false;
  public:
   [[nodiscard]] const std::string &getName() const {
 	return name;
@@ -61,7 +62,7 @@ class Variable {
 	  return varType::STRING;
 	else if (_value == "widechar")
 	  return varType::WIDECHAR;
-	else if (_value == "Num")
+	else if (_value == "num")
 	  return varType::REAL;
 	else return varType::UNKNOWN;
   }

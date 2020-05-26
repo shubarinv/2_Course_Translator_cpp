@@ -49,9 +49,12 @@ class VariableTable {
 	  std::cout << var->getName() << ": " << Variable::varTypeToString(var->getType()) << std::endl;
 	}
   }
-
  private:
   std::vector<Variable *> variables;
+ public:
+  [[nodiscard]] const std::vector<Variable *> &getVariables() const {
+	return variables;
+  }
 };
 
 #endif //SPO_COMPILER_SRC_VARIABLE_TABLE_HPP_

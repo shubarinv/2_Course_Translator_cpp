@@ -12,7 +12,7 @@ class FunctionTable {
  public:
   ~FunctionTable() { functions.clear(); }
 
-  Function *getVarByName(const std::string &_name) {
+  Function *getFuncByName(const std::string &_name) {
 	for (auto &func : functions) {
 	  if (func->getName() == _name) {
 		return func;
@@ -33,6 +33,13 @@ class FunctionTable {
   void printToConsole() {
 	for (auto &func : functions) {
 	  std::cout << func->getName() << std::endl;
+	  for (auto &var:func->variables.getVariables()) {
+		std::cout << "+- " << var->getName() << " : " << var->getType() << std::endl;
+	  }
+	  if (func->getReturnVar() != nullptr) {
+		std::cout << "Returns: " << func->getReturnVar()->getName() << " : " << func->getReturnVar()->getType() << std::endl;
+	  }
+	  std::cout << std::endl << std::endl;
 	}
   }
   void addFunction(Function *_func) {

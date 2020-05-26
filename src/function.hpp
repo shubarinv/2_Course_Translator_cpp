@@ -15,7 +15,18 @@ class Function {
 	return name;
   }
  private:
-  Variable::varType returnType = Variable::varType::UNKNOWN;
+  Variable *returnVar{};
+ public:
+  [[nodiscard]] Variable *getReturnVar() const {
+	return returnVar;
+  }
+ public:
+  void setReturnVar(Variable *return_var) {
+	returnVar = return_var;
+  }
+  std::vector<Variable *> getVariables() const {
+	return variables.getVariables();
+  }
  public:
   explicit Function(std::string _name) : name(std::move(_name)) {}
   VariableTable variables;

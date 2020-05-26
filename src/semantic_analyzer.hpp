@@ -30,17 +30,18 @@ class SemanticAnalyzer {
   void analyze() {
 	std::cout << "=======================\n SemanticAnalyzer \n===========" << std::endl;
 	lookForVariableDeclaration();
+	lookForFunctionsAndProcedures(tree);
 	std::cout << "Global variables:" << std::endl;
 	globalVariables->printToConsole();
-	std::cout << "In function variables: NOT IMPLEMENTED" << std::endl;
-	std::cout << "Local variables:" << std::endl;
+	std::cout << "------------------\nIn function variables:" << std::endl;
+	functions->printToConsole();
+	std::cout << "------------------\nLocal variables:" << std::endl;
 	variables->printToConsole();
   }
 
   void lookForVariableDeclaration() {
 	if (tree->op1->type == Node::nodeType::VAR_SECTION &&
 		tree->op2->type == Node::nodeType::STATEMENT) {
-	  std::cout << "Local vars no functions" << std::endl;
 	  declareVariables(tree->op1); // registering local variables
 	  // register local variables do not expect functions/procedures
 	} else if (tree->op1->list.front()->type == Node::nodeType::VAR_SECTION) {
@@ -50,6 +51,45 @@ class SemanticAnalyzer {
 	  declareVariables(tree->op1->list.back()); // registering local variables
 	} else {
 	  std::cout << "That's strange no vars??" << std::endl;
+	}
+  }
+
+  void lookForFunctionsAndProcedures(Node *currentNode) {
+	// если текущая нода ноль, то делать с ней ничего нельзя
+	// так что выходим из функции
+	if (currentNode == nullptr)
+	  return;
+
+	if (currentNode->type == Node::nodeType::PROCEDURE ||
+		currentNode->type == Node::nodeType::FUNCTION) {
+	  functions->addFunction(new Function(currentNode->value));
+	  if (currentNode->op1->type == Node::nodeType::PARAMS) {
+		for (auto &param : currentNode->op1->list) {
+		  if (param->type == Node::nodeType::VARLIST) {
+			for (auto &var : param->list) {
+			  functions->getFuncByName(currentNode->value)->
+				  variables.addVar(new Variable(var->value, Variable::determineVarType(param->op1->value), true));
+			}
+		  } else if (param->type == Node::nodeType::PARAM) {
+			for (auto &var:param->op2->list) {
+			  functions->getFuncByName(currentNode->value)->
+				  variables.addVar(new Variable(var->value, Variable::determineVarType(param->op2->op1->value)));
+			}
+		  }
+		}
+	  }
+	  if (currentNode->op2->op1->type == Node::nodeType::VAR_SECTION) {
+		declareVariables(currentNode->op2->op1, functions->getFuncByName(currentNode->value), false);
+	  }
+
+	}
+
+	lookForFunctionsAndProcedures(currentNode->op1);
+	lookForFunctionsAndProcedures(currentNode->op2);
+	lookForFunctionsAndProcedures(currentNode->op3);
+	lookForFunctionsAndProcedures(currentNode->op4);
+	for (auto &node :currentNode->list) {
+	  lookForFunctionsAndProcedures(node);
 	}
   }
 
