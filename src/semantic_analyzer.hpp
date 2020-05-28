@@ -102,12 +102,19 @@ class SemanticAnalyzer {
 	if (currentNode->type == Node::nodeType::VARDECL) {
 	  std::string varType = currentNode->op2->value;
 	  for (auto &varName:currentNode->op1->list) {
-		if (bGlobal)
+		if (bGlobal) { // если глобальная переменная
 		  globalVariables->addVar(new Variable(varName->value, Variable::determineVarType(varType)));
-		else if (parentFunction != nullptr) {
+		} else if (parentFunction != nullptr) { // если переменная относится к функции
 		  parentFunction->variables.addVar(new Variable(varName->value, Variable::determineVarType(varType)));
-		} else
+		  if (globalVariables->isVarDefined(parentFunction->getVariables().back()->getName())) {
+			throw VariableShadowing(parentFunction->getVariables().back()->getName());
+		  }
+		} else { // если обычная переменная в программе
 		  variables->addVar(new Variable(varName->value, Variable::determineVarType(varType)));
+		  if (globalVariables->isVarDefined(variables->getVariables().back()->getName())) {
+			throw VariableShadowing(variables->getVariables().back()->getName());
+		  }
+		}
 	  }
 	}
 

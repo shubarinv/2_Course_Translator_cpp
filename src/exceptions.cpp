@@ -90,3 +90,15 @@ class TypeMismatchError : public std::exception {
   }
 };
 
+class VariableShadowing : public std::exception {
+ private:
+  std::string message;
+ public:
+  explicit VariableShadowing(const std::string &type1) : message(type1) {
+	std::string error = "Var shadows previous declaration: " + type1;
+	message = error;
+  }
+  virtual const char *what() const throw() {
+	return message.c_str();
+  }
+};
