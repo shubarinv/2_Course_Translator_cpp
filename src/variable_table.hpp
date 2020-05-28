@@ -7,6 +7,7 @@
 
 #include <vector>
 #include "variable.hpp"
+
 class VariableTable {
  public:
   ~VariableTable() { variables.clear(); }

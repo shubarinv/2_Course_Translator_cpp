@@ -419,6 +419,7 @@ class Parser {
 	  }
 	}
 	if (node->list.size() == 1) { return node->list.back(); }
+	if (node->list.empty())return nullptr;
 	return node;
   }
 

@@ -31,6 +31,7 @@ class SemanticAnalyzer {
 	std::cout << "=======================\n SemanticAnalyzer \n===========" << std::endl;
 	lookForVariableDeclaration();
 	lookForFunctionsAndProcedures(tree);
+
 	std::cout << "Global variables:" << std::endl;
 	globalVariables->printToConsole();
 	std::cout << "------------------\nIn function variables:" << std::endl;
@@ -49,9 +50,8 @@ class SemanticAnalyzer {
 	}
 	if (tree->op1->list.back()->type == Node::nodeType::VAR_SECTION) {
 	  declareVariables(tree->op1->list.back()); // registering local variables
-	} else {
-	  std::cout << "That's strange no vars??" << std::endl;
 	}
+	checkVariableDeclaration(tree->op2);
   }
 
   void lookForFunctionsAndProcedures(Node *currentNode) {
@@ -78,10 +78,12 @@ class SemanticAnalyzer {
 		  }
 		}
 	  }
+	  if (currentNode->op2->type == Node::nodeType::STATEMENT) {
+		checkVariableDeclaration(currentNode, functions->getFuncByName(currentNode->value));
+	  }
 	  if (currentNode->op2->op1->type == Node::nodeType::VAR_SECTION) {
 		declareVariables(currentNode->op2->op1, functions->getFuncByName(currentNode->value), false);
 	  }
-
 	}
 
 	lookForFunctionsAndProcedures(currentNode->op1);
@@ -207,9 +209,28 @@ class SemanticAnalyzer {
 	}
   }
 
-  void findFunctionsAndProcedures(Node *currentNode) {
+  void checkVariableDeclaration(Node *currentNode, Function *func = nullptr) {
+	if (currentNode == nullptr)
+	  return;
 
+	if (currentNode->type == Node::nodeType::VAR) {
+	  if (func != nullptr) {
+		if (!func->variables.isVarDefined(currentNode->value) && !globalVariables->isVarDefined(currentNode->value)) {
+		  throw VariableNotDefinedError(currentNode->value, func->getName());
+		}
+	  } else {
+		if (!variables->isVarDefined(currentNode->value) && !globalVariables->isVarDefined(currentNode->value)) {
+		  throw VariableNotDefinedError(currentNode->value);
+		}
+	  }
+	}
+	checkVariableDeclaration(currentNode->op1, func);
+	checkVariableDeclaration(currentNode->op2, func);
+	checkVariableDeclaration(currentNode->op3, func);
+	checkVariableDeclaration(currentNode->op4, func);
+	for (auto &node: currentNode->list) {
+	  checkVariableDeclaration(node, func);
+	}
   }
 };
-
 #endif //SPO_COMPILER_SRC_SEMANTIC_ANALYZER_HPP_
