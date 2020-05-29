@@ -14,6 +14,10 @@ class Function {
   [[nodiscard]] const std::string &getName() const {
 	return name;
   }
+  Node *funcAddr{};
+  [[nodiscard]] Node *getFuncAddr() const {
+	return funcAddr;
+  }
  private:
   Variable *returnVar{};
  public:
@@ -24,11 +28,11 @@ class Function {
   void setReturnVar(Variable *return_var) {
 	returnVar = return_var;
   }
-  std::vector<Variable *> getVariables() const {
+  [[nodiscard]] std::vector<Variable *> getVariables() const {
 	return variables.getVariables();
   }
  public:
-  explicit Function(std::string _name) : name(std::move(_name)) {}
+  explicit Function(std::string _name, Node *functionAddress) : name(std::move(_name)), funcAddr(functionAddress) {}
   VariableTable variables;
 };
 
