@@ -181,7 +181,7 @@ class SemanticAnalyzer {
 	if (currentNode == nullptr)return;
 
 	if (currentNode->type == Node::nodeType::BINOP && currentNode->op2->type != Node::nodeType::BINOP) {
-	  if (!Variable::areTypesCompatible(getVariableType(currentNode->op1, func), getVariableType(currentNode->op2))) {
+	  if (!Variable::areTypesCompatible(getVariableType(currentNode->op1, func), getVariableType(currentNode->op2,func))) {
 		throw TypeMismatchError(Variable::varTypeToString(getVariableType(currentNode->op1, func)),
 								Variable::varTypeToString(getVariableType(currentNode->op2, func)));
 
