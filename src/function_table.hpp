@@ -34,7 +34,7 @@ class FunctionTable {
 	for (auto &func : functions) {
 	  std::cout << func->getName() << std::endl;
 	  for (auto &var:func->variables.getVariables()) {
-		std::cout << "+- " << var->getName() << " : " << var->getType() << std::endl;
+		std::cout << "+- " << var->getName() << " : " << Variable::varTypeToString(var->getType()) << std::endl;
 	  }
 	  if (func->getReturnVar() != nullptr) {
 		std::cout << "Returns: " << func->getReturnVar()->getName() << " : " << func->getReturnVar()->getType() << std::endl;

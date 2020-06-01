@@ -55,6 +55,7 @@ class SemanticAnalyzer {
 	  declareVariables(tree->op1->list.back()); // registering local variables
 	}
 	checkVariableDeclaration(tree->op2);
+	
   }
 
   void lookForFunctionsAndProcedures(Node *currentNode) {

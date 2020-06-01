@@ -83,6 +83,7 @@ class Variable {
 	  case varType::UNKNOWN: return "unknown";
 	  case WORD:return "word";
 	}
+	return "Undefined";
   }
   static bool areTypesCompatible(varType type1, varType type2) {
 	if (type1 == varType::INTEGER ||
