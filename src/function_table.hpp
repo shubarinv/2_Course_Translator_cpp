@@ -50,6 +50,10 @@ class FunctionTable {
 
  private:
   std::vector<Function *> functions;
+ public:
+  const std::vector<Function *> &getFunctions() const {
+	return functions;
+  }
 };
 
 #endif //SPO_COMPILER_SRC_FUNCTION_TABLE_HPP_

@@ -31,6 +31,9 @@ class SemanticAnalyzer {
 	std::cout << "=======================\n SemanticAnalyzer \n===========" << std::endl;
 	lookForVariableDeclaration();
 	lookForFunctionsAndProcedures(tree);
+	for (auto &function:functions->getFunctions()) {
+	  checkTypeMismatch(function->getFuncAddr(), function);
+	}
 
 	std::cout << "Global variables:" << std::endl;
 	globalVariables->printToConsole();
@@ -62,7 +65,7 @@ class SemanticAnalyzer {
 
 	if (currentNode->type == Node::nodeType::PROCEDURE ||
 		currentNode->type == Node::nodeType::FUNCTION) {
-	  functions->addFunction(new Function(currentNode->value));
+	  functions->addFunction(new Function(currentNode->value, currentNode));
 	  if (currentNode->op1->type == Node::nodeType::PARAMS) {
 		for (auto &param : currentNode->op1->list) {
 		  if (param->type == Node::nodeType::VARLIST) {
@@ -151,6 +154,27 @@ class SemanticAnalyzer {
 	checkVariableDeclaration(currentNode->op4, func);
 	for (auto &node: currentNode->list) {
 	  checkVariableDeclaration(node, func);
+	}
+  }
+
+  void checkTypeMismatch(Node *currentNode, Function *func = nullptr) {
+	if (currentNode == nullptr)return;
+
+	if (currentNode->type == Node::nodeType::BINOP && currentNode->op2->type != Node::nodeType::BINOP) {
+	  if (func != nullptr) {
+		if (!Variable::areTypesCompatible(func->variables.getVarType(currentNode->op1->value),
+										  func->variables.getVarType(currentNode->op2->value))) {
+		  throw TypeMismatchError(Variable::varTypeToString(func->variables.getVarType(currentNode->op1->value)),
+								  Variable::varTypeToString(func->variables.getVarType(currentNode->op2->value)));
+		}
+	  }
+	}
+	checkTypeMismatch(currentNode->op1, func);
+	checkTypeMismatch(currentNode->op2, func);
+	checkTypeMismatch(currentNode->op3, func);
+	checkTypeMismatch(currentNode->op4, func);
+	for (auto &node: currentNode->list) {
+	  checkTypeMismatch(node, func);
 	}
   }
 };
