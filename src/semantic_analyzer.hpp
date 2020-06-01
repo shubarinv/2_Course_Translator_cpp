@@ -27,6 +27,22 @@ class SemanticAnalyzer {
 	analyze();
   }
  private:
+  Variable::varType getVariableType(Node *currentNode, Function *func = nullptr) {
+	if (func != nullptr) {
+	  if (func->variables.isVarDefined(currentNode->value)) {
+		return func->variables.getVarType(currentNode->value);
+	  }
+	} else {
+	  if (variables->isVarDefined(currentNode->value)) { return variables->getVarType(currentNode->value); }
+	}
+	if (globalVariables->isVarDefined(currentNode->value)) {
+	  return globalVariables->getVarType(currentNode->value);
+	}
+	if (Token::determineTokenType(currentNode->value) != Token::tokenType::Id) {
+	  return Variable::determineVarType(Token::typeToString(Token::determineTokenType(currentNode->value)));
+	}
+	return Variable::varType::UNKNOWN;
+  }
   void analyze() {
 	std::cout << "=======================\n SemanticAnalyzer \n===========" << std::endl;
 	lookForVariableDeclaration();
@@ -34,7 +50,11 @@ class SemanticAnalyzer {
 	for (auto &function:functions->getFunctions()) {
 	  checkTypeMismatch(function->getFuncAddr(), function);
 	}
-
+	if (!functions->getFunctions().empty()) {
+	  checkTypeMismatch(tree->op2);
+	} else {
+	  checkTypeMismatch(tree);
+	}
 	std::cout << "Global variables:" << std::endl;
 	globalVariables->printToConsole();
 	std::cout << "------------------\nIn function variables:" << std::endl;
@@ -55,7 +75,7 @@ class SemanticAnalyzer {
 	  declareVariables(tree->op1->list.back()); // registering local variables
 	}
 	checkVariableDeclaration(tree->op2);
-	
+
   }
 
   void lookForFunctionsAndProcedures(Node *currentNode) {
@@ -133,7 +153,6 @@ class SemanticAnalyzer {
 	}
   }
 
-
   void checkVariableDeclaration(Node *currentNode, Function *func = nullptr) {
 	if (currentNode == nullptr)
 	  return;
@@ -162,12 +181,10 @@ class SemanticAnalyzer {
 	if (currentNode == nullptr)return;
 
 	if (currentNode->type == Node::nodeType::BINOP && currentNode->op2->type != Node::nodeType::BINOP) {
-	  if (func != nullptr) {
-		if (!Variable::areTypesCompatible(func->variables.getVarType(currentNode->op1->value),
-										  func->variables.getVarType(currentNode->op2->value))) {
-		  throw TypeMismatchError(Variable::varTypeToString(func->variables.getVarType(currentNode->op1->value)),
-								  Variable::varTypeToString(func->variables.getVarType(currentNode->op2->value)));
-		}
+	  if (!Variable::areTypesCompatible(getVariableType(currentNode->op1, func), getVariableType(currentNode->op2))) {
+		throw TypeMismatchError(Variable::varTypeToString(getVariableType(currentNode->op1, func)),
+								Variable::varTypeToString(getVariableType(currentNode->op2, func)));
+
 	  }
 	}
 	checkTypeMismatch(currentNode->op1, func);
@@ -178,5 +195,6 @@ class SemanticAnalyzer {
 	  checkTypeMismatch(node, func);
 	}
   }
+
 };
 #endif //SPO_COMPILER_SRC_SEMANTIC_ANALYZER_HPP_

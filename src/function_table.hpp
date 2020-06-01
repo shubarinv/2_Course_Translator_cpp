@@ -37,7 +37,7 @@ class FunctionTable {
 		std::cout << "+- " << var->getName() << " : " << Variable::varTypeToString(var->getType()) << std::endl;
 	  }
 	  if (func->getReturnVar() != nullptr) {
-		std::cout << "Returns: " << func->getReturnVar()->getName() << " : " << func->getReturnVar()->getType() << std::endl;
+		std::cout << "Returns: " << func->getReturnVar()->getName() << " : " << Variable::varTypeToString(func->getReturnVar()->getType()) << std::endl;
 	  }
 	  std::cout << std::endl << std::endl;
 	}
