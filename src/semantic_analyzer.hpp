@@ -197,6 +197,13 @@ private:
                                         Variable::varTypeToString(getVariableType(currentNode->op2, func)));
 
             }
+        } else if (currentNode->type == Node::nodeType::BINOP && currentNode->op2->type == Node::nodeType::BINOP) {
+            if (!Variable::areTypesCompatible(getVariableType(currentNode->op1, func),
+                                              getVariableType(currentNode->op2->op1, func))) {
+                throw TypeMismatchError(Variable::varTypeToString(getVariableType(currentNode->op1, func)),
+                                        Variable::varTypeToString(getVariableType(currentNode->op2->op1, func)));
+
+            }
         }
         checkTypeMismatch(currentNode->op1, func);
         checkTypeMismatch(currentNode->op2, func);
