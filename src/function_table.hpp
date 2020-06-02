@@ -51,8 +51,8 @@ class FunctionTable {
  private:
   std::vector<Function *> functions;
  public:
-  const std::vector<Function *> &getFunctions() const {
-	return functions;
+  [[nodiscard]] const std::vector<Function *> &getFunctions() const {
+      return functions;
   }
 };
 
