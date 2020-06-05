@@ -31,6 +31,15 @@ class Function {
   [[nodiscard]] std::vector<Variable *> getVariables() const {
 	return variables.getVariables();
   }
+  std::vector<Variable *> getParams() {
+	std::vector<Variable *> params;
+	for (auto &var :getVariables()) {
+	  if (var->getIsParam()) {
+		params.push_back(var);
+	  }
+	}
+	return params;
+  }
  public:
   explicit Function(std::string _name, Node *functionAddress) : name(std::move(_name)), funcAddr(functionAddress) {}
   VariableTable variables;

@@ -104,3 +104,16 @@ class VariableShadowing : public std::exception {
 	return message.c_str();
   }
 };
+
+class UnexpectedParameterType : public std::exception {
+ private:
+  std::string message;
+ public:
+  explicit UnexpectedParameterType(const std::string &funcName, const std::string &type1, const std::string &type2) : message(" ") {
+	std::string error = "In function " + funcName + ". Param type mismatch: expected " + type1 + " got " + type2;
+	message = error;
+  }
+  virtual const char *what() const throw() {
+	return message.c_str();
+  }
+};
