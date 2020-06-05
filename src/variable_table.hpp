@@ -47,6 +47,8 @@ class VariableTable {
 
   void printToConsole() {
 	for (auto &var : variables) {
+	  if (var->getIsParam())
+		std::cout << "Param: ";
 	  std::cout << var->getName() << ": " << Variable::varTypeToString(var->getType()) << std::endl;
 	}
   }

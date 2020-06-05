@@ -30,6 +30,10 @@ class Variable {
   varType type;
   bool isParam = false;
  public:
+  bool getIsParam() const {
+	return isParam;
+  }
+ public:
   [[nodiscard]] const std::string &getName() const {
 	return name;
   }
