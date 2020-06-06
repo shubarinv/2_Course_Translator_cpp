@@ -19,23 +19,29 @@ class Parser {
  private:
   Lexer *lexer;
   Node *tree{};
+ public:
+  [[nodiscard]] Node *GetTree() const {
+	if (tree == nullptr) {
+	  std::cout << "Tree is null! Either you didn't use parse() function in Parser or there is nothing to parse." <<
+				std::endl;
+	}
+	return tree;
+  }
 
  public:
   void parse() {
-	lexer->tokenize();
-	lexer->printAllTokens();
 	tree = Goal();
 	printRecursive(tree, 0);
+	std::cout << "\n\n----PARSING DONE -----\n\n" << std::endl;
   }
 
   explicit Parser(const std::string &_filename) {
-
 	lexer = new Lexer(_filename);
-	parse();
+	lexer->tokenize();
+
   }
  private:
   void expect(Token::tokenType tokenType) {
-
 	if (lexer->getCurrentToken()->getType() == tokenType) {
 	  lexer->nextToken();
 	} else {
@@ -43,7 +49,7 @@ class Parser {
 	  StackTraceGenerator::printStack();
 #endif
 	  printRecursive(tree, 0);
-	  throw ParsingError(Token::typeToString(tokenType),lexer->getCurrentToken()->getText());
+	  throw ParsingError(Token::typeToString(tokenType), lexer->getCurrentToken()->getText());
 	}
   }
 
@@ -70,8 +76,6 @@ class Parser {
 	  case Node::nodeType::EXPR:cout << "EXPR ";
 		break;
 	  case Node::nodeType::CONSTANT:cout << "CONST ";
-		// так как имеет значение, то выводим его в скобках
-		cout << "(" << currentNode->value << ")";
 		break;
 	  case Node::nodeType::ADD:cout << "ADD ";
 		break;
@@ -90,18 +94,14 @@ class Parser {
 	  case Node::nodeType::ELSE:cout << "ELSE ";
 		break;
 	  case Node::nodeType::VAR:cout << "VAR ";
-		cout << "(" << currentNode->value << ")";
 		break;
 	  case Node::nodeType::BINOP:cout << "BINOP ";
-		cout << "(" << currentNode->value << ")";
 		break;
 	  case Node::nodeType::STR:cout << "STR ";
-		cout << "(" << currentNode->value << ")";
 		break;
 	  case Node::nodeType::FACTOR:cout << "FACTOR ";
 		break;
 	  case Node::nodeType::PAR:cout << "PAR";
-		cout << " ('" << currentNode->value << "')";
 		break;
 	  case Node::nodeType::TERM:cout << "TERM ";
 		break;
@@ -114,7 +114,6 @@ class Parser {
 	  case Node::nodeType::VARDECL:cout << "VARDECL";
 		break;
 	  case Node::nodeType::VARTYPE:cout << "VARTYPE";
-		cout << " ('" << currentNode->value << "')";
 		break;
 	  case Node::nodeType::DECL:cout << "DECL ";
 		break;
@@ -168,7 +167,11 @@ class Parser {
 		break;
 	  case Node::nodeType::FUNCTION:cout << "FUNCTION";
 		break;
+	  case Node::nodeType::FUNCCALL:cout << "FUNC_CALL";
+    break;
 	}
+	if (currentNode->value != " ")
+	  cout << "(" << currentNode->value << ")";
 	if (bAddNewline)
 	  cout << endl;
 
@@ -182,21 +185,6 @@ class Parser {
 	}
   }
 
-  void recursiveTraversal(Node *currentNode) {
-	// если текущая нода ноль, то делать с ней ничего нельзя
-	// так что выходим из функции
-	if (currentNode == nullptr)
-	  return;
-
-	recursiveTraversal(currentNode->op1);
-	recursiveTraversal(currentNode->op2);
-	recursiveTraversal(currentNode->op3);
-	recursiveTraversal(currentNode->op4);
-	for (auto &node :currentNode->list) {
-	  recursiveTraversal(node);
-	}
-  }
-
   Node *Goal() {
 	/*
 	 * Goal -> (Program | Package  | Library  | Unit)
@@ -207,6 +195,8 @@ class Parser {
 	node->op2 = Package();
 	node->op3 = Library();
 	node->op4 = Unit();
+	if (node->op2 == nullptr && node->op3 == nullptr && node->op4 == nullptr)
+	  return node->op1;
 	return node;
   }
 
@@ -236,6 +226,9 @@ class Parser {
 	  node->op3 = ProgramBlock();
 	}
 	expect(Token::tokenType::DOT);
+	if (node->op2 == nullptr && node->op3 == nullptr && node->op4 == nullptr) {
+	  return node->op1;
+	}
 	return node;
   }
 
@@ -301,6 +294,7 @@ class Parser {
 	} else {
 	  node->op2 = Block();
 	}
+	if (node->op2 == nullptr)return node->op1;
 	return node;
   }
 
@@ -390,6 +384,7 @@ class Parser {
 	else {
 	  node->op1 = CompoundStmt();
 	}
+	if (node->op2 == nullptr)return node->op1;
 	return node;
   }
 
@@ -423,6 +418,8 @@ class Parser {
 		node->list.push_back(tmp);
 	  }
 	}
+	if (node->list.size() == 1) { return node->list.back(); }
+	if (node->list.empty())return nullptr;
 	return node;
   }
 
@@ -762,8 +759,12 @@ class Parser {
 	node->op1 = ConstExpr();
 	if (node->op1 == nullptr)
 	  return nullptr;
-	expect(Token::tokenType::DOT);
-	expect(Token::tokenType::DOT);
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::DOT) {
+	  expect(Token::tokenType::DOT);
+	} else {
+	  lexer->pushToFront(node->op1->value);
+	  return nullptr;
+	}
 	node->value = "..";
 	node->op2 = ConstExpr();
 	if (node->op1 == nullptr || node->op2 == nullptr) {
@@ -982,6 +983,12 @@ class Parser {
 	node->op1 = tmp;
 	node->op2 = RelOp();
 	if (node->op2 == nullptr) {
+	  if (tmp->type == Node::nodeType::VAR) {
+		tmp = funcCall(node->op1);
+		if (tmp != nullptr) {
+		  return tmp;
+		}
+	  }
 	  return node->op1;
 	}
 	node->op3 = SimpleExpression();
@@ -1195,8 +1202,11 @@ class Parser {
 	 */
 	Node *node = new Node(Node::nodeType::EXPR);;
 	node->list.push_back(Expression());
+	if (node->list.back() == nullptr) {
+	  return nullptr;
+	}
 	if (lexer->getCurrentToken()->getType() != Token::tokenType::COMMA) {
-	  return node;
+	  return node->list.back();
 	}
 	lexer->nextToken();
 	while (node->list.back() != nullptr) {
@@ -1213,14 +1223,11 @@ class Parser {
 	/*
 	 * Statement -> [LabelId ':'] [SimpleStatement | StructStmt]
 	 */
-	Node *node = Write();
+	Node *node = funcCall();
 	if (node == nullptr) {
-	  node = Read();
+	  node = SimpleStatement();
 	  if (node == nullptr) {
-		node = SimpleStatement();
-		if (node == nullptr) {
-		  node = StructStmt();
-		}
+		node = StructStmt();
 	  }
 	}
 	return node;
@@ -1248,7 +1255,7 @@ class Parser {
 		return node;
 	  }
 	  node->list.push_back(tmp);
-	  if (node->list.back() != nullptr)
+	  if (tmp != nullptr)
 		expect(Token::tokenType::Semicolon);
 	}
 	return node;
@@ -1273,15 +1280,13 @@ class Parser {
 	  return nullptr;
 	return node;
   }
-
   Node *Write() {
 	/*
 	 * Write -> '(' [ident|string] ')' ';'
 	 * Write -> '(' [ident|string] ',' [ident|string] ')' ';'
 	 */
 	Node *node{nullptr};
-	if (lexer->getCurrentToken()->getType() ==
-		Token::tokenType::WRITE_Keyword) {
+	if (lexer->getCurrentToken()->getType() == Token::tokenType::WRITE_Keyword) {
 	  node = new Node(Node::nodeType::OUTPUT);
 	  node->value = lexer->getCurrentToken()->getText();
 	  lexer->nextToken();
@@ -1290,6 +1295,40 @@ class Parser {
 	  expect(Token::tokenType::RPAR);
 	} else
 	  return nullptr;
+	return node;
+  }
+
+  Node *funcCall(Node *var = nullptr) {
+	/*
+	 * funcCall -> '(' exprList ')'
+	 * funcCall -> '('')'
+	 */
+	Node *node{nullptr};
+	if (var != nullptr) {
+	  if (lexer->getCurrentToken()->getType() != Token::tokenType::LPAR) {
+		return nullptr;
+	  } else {
+		node = new Node(Node::nodeType::FUNCCALL, var->value);
+		expect(Token::tokenType::LPAR);
+		node->op1 = ExprList();
+		expect(Token::tokenType::RPAR);
+	  }
+	} else if (lexer->getCurrentToken()->getType() == Token::tokenType::Id) {
+	  Token tmpToken = *lexer->getCurrentToken();
+	  lexer->nextToken();
+	  if (lexer->getCurrentToken()->getType() != Token::tokenType::LPAR) {
+		lexer->pushToFront(tmpToken.getText());
+		return nullptr;
+	  } else {
+		node = new Node(Node::nodeType::FUNCCALL, tmpToken.getText());
+		expect(Token::tokenType::LPAR);
+		node->op1 = ExprList();
+		expect(Token::tokenType::RPAR);
+	  }
+	} else if (lexer->getCurrentToken()->getType() == Token::tokenType::WRITE_Keyword)
+	  return Write();
+	else if (lexer->getCurrentToken()->getType() == Token::tokenType::READ_Keyword)
+	  return Read();
 	return node;
   }
 
@@ -1454,8 +1493,7 @@ class Parser {
 
   Node *ForStmt() {
 	/*
-	 * ForStmt -> FOR QualId ':=' Expression (TO | DOWNTO) Expression DO
-	 * Statement
+	 * ForStmt -> FOR QualId ':=' Expression (TO | DOWNTO) Expression DO Statement
 	 */
 	Node *node{nullptr};
 	if (lexer->getCurrentToken()->getType() == Token::tokenType::FOR_Keyword) {
@@ -1468,6 +1506,9 @@ class Parser {
 	  node->op3 = new StringNode(lexer->getCurrentToken()->getText());
 	  lexer->nextToken();
 	  node->op4 = Expression();
+	  if (node->op4 == nullptr) {
+		throw ParsingError("Expression", "Nothing");
+	  }
 	  expect(Token::tokenType::DO_Keyword);
 	  node->list.push_back(Statement());
 	}
@@ -1510,6 +1551,7 @@ class Parser {
 	node->op1 = ProcedureHeading();
 	if (node->op1 == nullptr)
 	  return nullptr;
+	node = node->op1;
 	expect(Token::tokenType::Semicolon);
 	node->op2 = Directive();
 	if (node->op2 == nullptr) {
@@ -1551,25 +1593,25 @@ class Parser {
 		Token::tokenType::FUNCTION_Keyword) {
 	  lexer->nextToken();
 	  node = new Node(Node::nodeType::FUNCTION);
-	  node->op1 = Ident();
-	  node->op2 = FormalParameters();
+	  node->value = Ident()->value;
+	  node->op1 = FormalParameters();
 	  expect(Token::tokenType::Colon);
-	  if (node->op2 == nullptr) {
-		node->op2 = SimpleType();
-		if (node->op2 == nullptr) {
+	  if (node->op1 == nullptr) {
+		node->op1 = SimpleType();
+		if (node->op1 == nullptr) {
 		  if (lexer->getCurrentToken()->getType() ==
 			  Token::tokenType::STRING_Keyword) {
-			node->op2 = new StringNode(lexer->getCurrentToken()->getText());
+			node->op1 = new StringNode(lexer->getCurrentToken()->getText());
 			lexer->nextToken();
 		  } else
 			expect(Token::tokenType::STRING_Keyword);
 		}
 	  } else {
-		node->op3 = SimpleType();
-		if (node->op3 == nullptr) {
+		node->op2 = SimpleType();
+		if (node->op2 == nullptr) {
 		  if (lexer->getCurrentToken()->getType() ==
 			  Token::tokenType::STRING_Keyword) {
-			node->op3 = new StringNode(lexer->getCurrentToken()->getText());
+			node->op2 = new StringNode(lexer->getCurrentToken()->getText());
 			lexer->nextToken();
 		  } else
 			expect(Token::tokenType::STRING_Keyword);
@@ -1588,8 +1630,8 @@ class Parser {
 		Token::tokenType::PROCEDURE_Keyword) {
 	  lexer->nextToken();
 	  node = new Node(Node::nodeType::PROCEDURE);
-	  node->op1 = Ident();
-	  node->op2 = FormalParameters();
+	  node->value = Ident()->value;
+	  node->op1 = FormalParameters();
 	}
 	return node;
   }
@@ -1870,7 +1912,7 @@ class Parser {
 	  node = IdentList();
 	  return node;
 	} else if (!bCanFail) {
-	  throw ParsingError("LPAR",Token::typeToString(lexer->getCurrentToken()->getType()));
+	  throw ParsingError("LPAR", Token::typeToString(lexer->getCurrentToken()->getType()));
 	} else {
 	  return nullptr;
 	}
@@ -1950,7 +1992,7 @@ class Parser {
 	  lexer->nextToken();
 	  return node;
 	} else if (!bCanFail) {
-	  throw ParsingError("ID",lexer->getCurrentToken()->getText());
+	  throw ParsingError("ID", lexer->getCurrentToken()->getText());
 	} else {
 	  return nullptr;
 	}
@@ -1969,7 +2011,7 @@ class Parser {
 #if __APPLE__
 	  StackTraceGenerator::printStack();
 #endif
-	  throw ParsingError("ID",lexer->getCurrentToken()->getText());
+	  throw ParsingError("ID", lexer->getCurrentToken()->getText());
 	} else {
 	  return nullptr;
 	}

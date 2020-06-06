@@ -9,7 +9,7 @@
 class NotImplementedException : public std::logic_error {
  private:
 
-  std::string _text;;
+  std::string _text;
 
  public:
   NotImplementedException() : NotImplementedException("Not Implemented", __FUNCTION__) {
@@ -49,10 +49,13 @@ class VariableNotDefinedError : public std::exception {
  private:
   std::string message;
  public:
-  explicit VariableNotDefinedError(std::string expected) : message(std::move(expected)) {
-	std::string error = "Variable with name: ";
+  explicit VariableNotDefinedError(std::string expected, const std::string &funcName = "") : message(std::move(expected)) {
+	std::string error = "Variable with name: \'";
 	error += message;
-	error += " was not defined";
+	error += "\' was not defined";
+	if (!funcName.empty()) {
+	  error += " in function named: " + funcName;
+	}
 	message = error;
   }
   virtual const char *what() const throw() {
@@ -60,3 +63,83 @@ class VariableNotDefinedError : public std::exception {
   }
 };
 
+
+class FunctionNotDefinedError : public std::exception {
+ private:
+  std::string message;
+ public:
+  explicit FunctionNotDefinedError(std::string expected) : message(std::move(expected)) {
+	std::string error = "Variable with name: \'";
+	error += message;
+	error += "\' was not defined";
+	message = error;
+  }
+  virtual const char *what() const throw() {
+	return message.c_str();
+  }
+};
+
+class TypeMismatchError : public std::exception {
+ private:
+  std::string message;
+ public:
+  explicit TypeMismatchError(const std::string &type1, const std::string &type2) : message(" ") {
+	std::string error = "Var type mismatch: expected " + type1 + " got "+ type2;
+	message = error;
+  }
+  virtual const char *what() const throw() {
+	return message.c_str();
+  }
+};
+
+class VariableShadowing : public std::exception {
+ private:
+  std::string message;
+ public:
+  explicit VariableShadowing(const std::string &type1) : message(type1) {
+	std::string error = "Var shadows previous declaration: " + type1;
+	message = error;
+  }
+  virtual const char *what() const throw() {
+	return message.c_str();
+  }
+};
+
+class UnexpectedParameterType : public std::exception {
+ private:
+  std::string message;
+ public:
+  explicit UnexpectedParameterType(const std::string &funcName, const std::string &type1, const std::string &type2) : message(" ") {
+	std::string error = "In function " + funcName + ". Param type mismatch: expected " + type1 + " got " + type2;
+	message = error;
+  }
+  virtual const char *what() const throw() {
+	return message.c_str();
+  }
+};
+
+class TooManyArgumentsException : public std::exception {
+ private:
+  std::string message;
+ public:
+  explicit TooManyArgumentsException(const std::string &funcName, int expected, int got) : message(" ") {
+	std::string error = "In function " + funcName + " expected " + std::to_string(expected) + " parameters, but got " + std::to_string(got);
+	message = error;
+  }
+  virtual const char *what() const throw() {
+	return message.c_str();
+  }
+};
+
+class TooFewArgumentsException : public std::exception {
+ private:
+  std::string message;
+ public:
+  explicit TooFewArgumentsException(const std::string &funcName, int expected, int got) : message(" ") {
+	std::string error = "In function " + funcName + " expected " + std::to_string(expected) + " parameters, but got " + std::to_string(got);
+	message = error;
+  }
+  virtual const char *what() const throw() {
+	return message.c_str();
+  }
+};

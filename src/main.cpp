@@ -1,4 +1,6 @@
 #include "Parser.h"
+
+#include "semantic_analyzer.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -22,8 +24,8 @@ int main() {
         std::cout << "Try again: \nFilename: ";
         std::cin >> filename;
     }
+  auto *semanticAnalyser = new SemanticAnalyzer(filename);
 
-    auto *parser = new Parser(filename);
 
    // std::system("pause");
     return 0;

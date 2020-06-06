@@ -14,8 +14,6 @@
 class Token {
  public:
   enum class tokenType {
-	Keyword,
-	Logic,
 	Comparison,
 	Semicolon,
 	DataType,
@@ -92,7 +90,7 @@ class Token {
 	STRING_Keyword,
 	FILE_Keyword,
 	OBJECT_Keyword,
-      AND_Keyword,
+	AND_Keyword,
   };
 
  private:
@@ -114,15 +112,19 @@ class Token {
 		  return !std::isdigit(c);
 		}) == str.end();
   }
-
+  static std::string toLowerCase(std::string str) {
+	for (auto &c: str) c = tolower(c);
+	return str;
+  }
  public:
-  static tokenType determineTokenType(const std::string &str) {
+  static tokenType determineTokenType(std::string str) {
 	using namespace std;
 	boost::regex IdRegex("^[a-zA-Z_$][a-zA-Z_$0-9]*$");
 	boost::smatch what;
+	str = toLowerCase(str);
 
 	try { // checking if string is double
-	  double value = std::stod(str);
+	  [[maybe_unused]] double value = std::stod(str);
 	  return tokenType::Num;
 	} catch (std::exception &e) {
 	}
@@ -196,7 +198,7 @@ class Token {
 	else if (str == "string")
 	  return tokenType::STRING_Keyword;
 	else if (str == "file")
-        return tokenType::FILE_Keyword;
+	  return tokenType::FILE_Keyword;
 
 	else if (str == "(")
 	  return tokenType::LPAR;
@@ -242,10 +244,10 @@ class Token {
 	  return tokenType::LONGINT_Type;
 	else if (str == "byte")
 	  return tokenType::BYTE_Type;
-    else if (str == "real")
-      return tokenType::REAL_Type;
-    else if (str == "and")
-        return tokenType::AND_Keyword;
+	else if (str == "real")
+	  return tokenType::REAL_Type;
+	else if (str == "and")
+	  return tokenType::AND_Keyword;
 
 	else if (boost::regex_match(str, what, IdRegex))
 	  return tokenType::Id;
@@ -263,8 +265,6 @@ class Token {
 	switch (_type) {
 	  case (tokenType::Assignment):return "Assignment";
 	  case (tokenType::Comparison):return "Comparison";
-	  case tokenType::Keyword:return "Keyword";
-	  case tokenType::Logic:return "Logic";
 	  case tokenType::Semicolon:return "Semicolon";
 	  case tokenType::DataType:return "DataType";
 	  case tokenType::Id:return "Id";
@@ -338,9 +338,9 @@ class Token {
 	  case tokenType::OUT:return "OUT";
 	  case tokenType::STRING_Keyword:return "STRING_Keyword";
 	  case tokenType::FILE_Keyword:return "FILE_Keyword";
-        case tokenType::OBJECT_Keyword:return "OBJECT_Keyword";
-        case tokenType::AND_Keyword:return "AND_Keyword";
-    }
+	  case tokenType::OBJECT_Keyword:return "OBJECT_Keyword";
+	  case tokenType::AND_Keyword:return "AND_Keyword";
+	}
 	return "ERROR";
   }
 };

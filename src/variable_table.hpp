@@ -7,12 +7,25 @@
 
 #include <vector>
 #include "variable.hpp"
-#include "exceptions.cpp"
+
 class VariableTable {
  public:
   ~VariableTable() { variables.clear(); }
 
-  void addVar(Variable *var) { variables.push_back(var); }
+  void addVar(Variable *var) {
+	if (!isVarDefined(var->getName()))
+	  variables.push_back(var);
+	else
+	  throw NotImplementedException("var redef");
+  }
+
+  Variable::varType getVarType(const std::string &_val) {
+	// since what semanticAnalyser passes here might not be a varName we need to check and determine type of what was passed
+	if (Token::determineTokenType(_val) != Token::tokenType::Id) {
+	  return Variable::determineVarType(Token::typeToString(Token::determineTokenType(_val)));
+	}
+	return getVarByName(_val)->getType();
+  }
 
   Variable *getVarByName(const std::string &_name) {
 	for (auto &var : variables) {
@@ -32,8 +45,19 @@ class VariableTable {
 	return false;
   }
 
+  void printToConsole() {
+	for (auto &var : variables) {
+	  if (var->getIsParam())
+		std::cout << "Param: ";
+	  std::cout << var->getName() << ": " << Variable::varTypeToString(var->getType()) << std::endl;
+	}
+  }
  private:
   std::vector<Variable *> variables;
+ public:
+  [[nodiscard]] const std::vector<Variable *> &getVariables() const {
+	return variables;
+  }
 };
 
 #endif //SPO_COMPILER_SRC_VARIABLE_TABLE_HPP_
