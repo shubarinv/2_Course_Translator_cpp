@@ -18,8 +18,8 @@ class SemanticAnalyzer {
   VariableTable *globalVariables{};
   FunctionTable *functions{};
  public:
-  explicit SemanticAnalyzer(const std::string &_filename) {
-	parser = new Parser(_filename);
+  explicit SemanticAnalyzer(const std::string &_filename, Parser *_parser) {
+	parser = _parser;
 	parser->parse();
 	tree = parser->GetTree();
 	variables = new VariableTable();
