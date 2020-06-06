@@ -232,10 +232,12 @@ class SemanticAnalyzer {
 			throw UnexpectedParameterType(func->getName(), Variable::varTypeToString(func->getReturnVar()->getType()),
 										  Variable::varTypeToString(getVariableType(param)));
 		  }
-
-		  break;
-		}
-		if (param->type == Node::nodeType::BINOP) {
+		  i++;
+		  continue;
+		} else if (i > func->getParams().size()) {
+		  i++;
+		  continue;
+		} else if (param->type == Node::nodeType::BINOP) {
 		  if (!Variable::areTypesCompatible(func->getParams()[i]->getType(), getVariableType(param->op1))) {
 			throw UnexpectedParameterType(func->getName(), Variable::varTypeToString(func->getParams()[i]->getType()),
 										  Variable::varTypeToString(getVariableType(param->op1)));
@@ -246,9 +248,11 @@ class SemanticAnalyzer {
 		}
 		i++;
 	  }
-
-	  if (i < func->getParams().size()) {
+	  std::cout << "Params in function: " << func->getParams().size() << std::endl;
+	  if (i < func->getParams().size() + 1) {
 		throw NotImplementedException("Not enough parameters");
+	  } else if (i > func->getParams().size() + 1) {
+		throw NotImplementedException("too many parameters");
 	  }
 	}
 	checkFunctionCalls(currentNode->op1);
