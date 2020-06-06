@@ -117,3 +117,29 @@ class UnexpectedParameterType : public std::exception {
 	return message.c_str();
   }
 };
+
+class TooManyArgumentsException : public std::exception {
+ private:
+  std::string message;
+ public:
+  explicit TooManyArgumentsException(const std::string &funcName, int expected, int got) : message(" ") {
+	std::string error = "In function " + funcName + " expected " + std::to_string(expected) + " parameters, but got " + std::to_string(got);
+	message = error;
+  }
+  virtual const char *what() const throw() {
+	return message.c_str();
+  }
+};
+
+class TooFewArgumentsException : public std::exception {
+ private:
+  std::string message;
+ public:
+  explicit TooFewArgumentsException(const std::string &funcName, int expected, int got) : message(" ") {
+	std::string error = "In function " + funcName + " expected " + std::to_string(expected) + " parameters, but got " + std::to_string(got);
+	message = error;
+  }
+  virtual const char *what() const throw() {
+	return message.c_str();
+  }
+};

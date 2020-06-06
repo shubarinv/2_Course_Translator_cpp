@@ -250,9 +250,9 @@ class SemanticAnalyzer {
 	  }
 	  std::cout << "Params in function: " << func->getParams().size() << std::endl;
 	  if (i < func->getParams().size() + 1) {
-		throw NotImplementedException("Not enough parameters");
+		throw TooFewArgumentsException(func->getName(), func->getParams().size() + 1, i);
 	  } else if (i > func->getParams().size() + 1) {
-		throw NotImplementedException("too many parameters");
+		throw TooManyArgumentsException(func->getName(), func->getParams().size() + 1, i);
 	  }
 	}
 	checkFunctionCalls(currentNode->op1);
