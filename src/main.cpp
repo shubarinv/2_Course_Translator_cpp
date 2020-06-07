@@ -26,8 +26,8 @@ int main() {
 	std::cin >> filename;
   }
   auto *parser = new Parser(filename);
-  auto *semanticAnalyser = new SemanticAnalyzer(filename, parser);
-  auto *translator = new Translator(parser);
+  auto *semanticAnalyzer = new SemanticAnalyzer(filename, parser);
+  auto *translator = new Translator(semanticAnalyzer);
 
 
   // std::system("pause");

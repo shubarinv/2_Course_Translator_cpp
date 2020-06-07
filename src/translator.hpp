@@ -7,16 +7,34 @@
 
 #include "Parser.h"
 class Translator {
-  Parser *parser{};
   Node *tree{};
+  VariableTable *localVariables;
+  VariableTable *globalVariables;
+  FunctionTable *functions;
   std::string program;
+  std::ofstream *outputFile;
  public:
-  explicit Translator(Parser *_parser) {
-	parser = _parser;
-	tree = parser->GetTree();
+  explicit Translator(SemanticAnalyzer *_semanticAnalyzer) {
+	if (_semanticAnalyzer == nullptr) {
+	  throw std::runtime_error("ERROR: Translator::Translator(SemanticAnalyzer*) SemanticAnalyzer is NULL");
+	}
+	localVariables = _semanticAnalyzer->getVariables();
+	globalVariables = _semanticAnalyzer->getGlobalVariables();
+	functions = _semanticAnalyzer->getFunctions();
+	tree = _semanticAnalyzer->getTree();
+	outputFile = new std::ofstream;
+	translate();
   }
   void translate() {
-
+	outputFile->open("output.asm");
+	*outputFile<<"global _start\n";
+	writeFunctions();
+	outputFile->close();
+  }
+  void writeFunctions(){
+    for(auto &func:functions->getFunctions()){
+      *outputFile<<func->getName()<<":\n";
+    }
   }
   std::string getProgram() {
 	return program;

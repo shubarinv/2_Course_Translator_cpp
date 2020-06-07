@@ -13,8 +13,24 @@
 class SemanticAnalyzer {
  private:
   Node *tree{};
+ public:
+  [[nodiscard]] Node *getTree() const {
+	return tree;
+  }
+ private:
   Parser *parser{};
   VariableTable *variables{};
+ public:
+  [[nodiscard]] VariableTable *getVariables() const {
+	return variables;
+  }
+  [[nodiscard]] VariableTable *getGlobalVariables() const {
+	return globalVariables;
+  }
+  [[nodiscard]]FunctionTable *getFunctions() const {
+	return functions;
+  }
+ private:
   VariableTable *globalVariables{};
   FunctionTable *functions{};
  public:
