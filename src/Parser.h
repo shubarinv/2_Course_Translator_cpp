@@ -943,7 +943,9 @@ class Parser {
 	  node->list.push_back(tmp);
 	  expect(Token::tokenType::Semicolon);
 	  while (node->list.back() != nullptr) {
-		node->list.push_back(VarDecl());
+		tmp = VarDecl();
+		if (tmp == nullptr) return node;
+		node->list.push_back(tmp);
 		if (node->list.back() != nullptr)
 		  expect(Token::tokenType::Semicolon);
 	  }
