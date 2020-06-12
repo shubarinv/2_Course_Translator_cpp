@@ -145,8 +145,20 @@ public:
             currentNode->value == "/") {
             writeMathOPs(currentNode);
         }
-        if (currentNode->value == ":=") {
-
+        if (currentNode->value == ":=" && currentNode->op2->type != Node::nodeType::BINOP) {
+            *outputFile << "mov ";
+            if (currentNode->op1->type == Node::nodeType::VAR) {
+                *outputFile << "[" << currentNode->op1->value << "]";
+            } else if (currentNode->op1->type == Node::nodeType::CONSTANT) {
+                *outputFile << currentNode->op1->value;
+            }
+            *outputFile << ", ";
+            if (currentNode->op2->type == Node::nodeType::VAR) {
+                *outputFile << "[" << currentNode->op2->value << "]";
+            } else if (currentNode->op2->type == Node::nodeType::CONSTANT) {
+                *outputFile << currentNode->op2->value;
+            }
+            *outputFile << "; " + currentNode->op1->value + currentNode->value + currentNode->op2->value + "\n";
         }
     }
 
