@@ -145,7 +145,7 @@ public:
             currentNode->value == "/") {
             writeMathOPs(currentNode);
         }
-        if (currentNode->value == ":=" && currentNode->op2->type != Node::nodeType::BINOP) {
+        if (currentNode->value == ":=") {
             *outputFile << "mov ";
             if (currentNode->op1->type == Node::nodeType::VAR) {
                 *outputFile << "[" << currentNode->op1->value << "]";
@@ -153,40 +153,60 @@ public:
                 *outputFile << currentNode->op1->value;
             }
             *outputFile << ", ";
+            if (currentNode->op2->type != Node::nodeType::BINOP) {
+                if (currentNode->op2->type == Node::nodeType::VAR) {
+                    *outputFile << "[" << currentNode->op2->value << "]";
+                } else if (currentNode->op2->type == Node::nodeType::CONSTANT) {
+                    *outputFile << currentNode->op2->value;
+                }
+            } else {
+                writeMathOPs(currentNode);
+            }
+            *outputFile << "\n";
+        }
+    }
+
+    void writeMathOPs(Node *currentNode) {
+        if (currentNode->op2->type != Node::nodeType::BINOP) {
+            *outputFile << "mov\tecx, ";
+            if (currentNode->op1->type == Node::nodeType::VAR) {
+                *outputFile << "[" << currentNode->op1->value << "]";
+            } else if (currentNode->op1->type == Node::nodeType::CONSTANT) {
+                *outputFile << currentNode->op1->value;
+            }
+            *outputFile << "\n";
+            if (currentNode->value == "+") {
+                *outputFile << "add\t";
+            } else if (currentNode->value == "-") {
+                *outputFile << "sub\t";
+            } else if (currentNode->value == "*") {
+                *outputFile << "mul\t";
+            } else {
+                *outputFile << "div\t";
+            }
+            *outputFile << "ecx, ";
             if (currentNode->op2->type == Node::nodeType::VAR) {
                 *outputFile << "[" << currentNode->op2->value << "]";
             } else if (currentNode->op2->type == Node::nodeType::CONSTANT) {
                 *outputFile << currentNode->op2->value;
             }
-            *outputFile << "; " + currentNode->op1->value + currentNode->value + currentNode->op2->value + "\n";
-        }
-    }
-
-    void writeMathOPs(Node *currentNode) {
-        *outputFile << "mov\tecx, ";
-        if (currentNode->op1->type == Node::nodeType::VAR) {
-            *outputFile << "[" << currentNode->op1->value << "]";
-        } else if (currentNode->op1->type == Node::nodeType::CONSTANT) {
-            *outputFile << currentNode->op1->value;
-        }
-        *outputFile << "\n";
-
-        if (currentNode->value == "+") {
-            *outputFile << "add\t";
-        } else if (currentNode->value == "-") {
-            *outputFile << "sub\t";
-        } else if (currentNode->value == "*") {
-            *outputFile << "mul\t";
+            *outputFile << "\n";
         } else {
-            *outputFile << "div\t";
+            Node *tmp = currentNode->op2;
+            while (tmp->type == Node::nodeType::BINOP) {
+                if (tmp->op1->type == Node::Node::nodeType::VAR) {
+                    *outputFile << "[" << tmp->op1->value << "]" << tmp->value;
+                } else {
+                    *outputFile << tmp->op1->value << tmp->value;
+                }
+                tmp = tmp->op2;
+            }
+            if (tmp->type == Node::Node::nodeType::VAR) {
+                *outputFile << "[" << tmp->value << "]";
+            } else {
+                *outputFile << tmp->value;
+            }
         }
-        *outputFile << "ecx, ";
-        if (currentNode->op2->type == Node::nodeType::VAR) {
-            *outputFile << "[" << currentNode->op2->value << "]";
-        } else if (currentNode->op2->type == Node::nodeType::CONSTANT) {
-            *outputFile << currentNode->op2->value;
-        }
-        *outputFile << "\n";
     }
 };
 
