@@ -208,6 +208,62 @@ public:
             }
         }
     }
+
+    void writeConditionals(Node *currentNode) {
+        throw NotImplementedException("writeConditionals()");
+        if (currentNode == nullptr)return;
+
+        writeConditionals(currentNode->op1);
+        writeConditionals(currentNode->op2);
+        writeConditionals(currentNode->op3);
+        writeConditionals(currentNode->op4);
+
+        for (auto &node : currentNode->list) {
+            writeConditionals(node);
+        }
+    }
+
+    void writeLoops(Node *currentNode) {
+        throw NotImplementedException("writeLoops()");
+        if (currentNode == nullptr)return;
+
+        writeLoops(currentNode->op1);
+        writeLoops(currentNode->op2);
+        writeLoops(currentNode->op3);
+        writeLoops(currentNode->op4);
+
+        for (auto &node : currentNode->list) {
+            writeLoops(node);
+        }
+    }
+
+    void writeInputs(Node *currentNode) {
+        throw NotImplementedException("writeInputs()");
+        if (currentNode == nullptr)return;
+
+        writeInputs(currentNode->op1);
+        writeInputs(currentNode->op2);
+        writeInputs(currentNode->op3);
+        writeInputs(currentNode->op4);
+
+        for (auto &node : currentNode->list) {
+            writeInputs(node);
+        }
+    }
+
+    void writeOutputs(Node *currentNode) {
+        throw NotImplementedException("writeOutputs()");
+        if (currentNode == nullptr)return;
+
+        writeOutputs(currentNode->op1);
+        writeOutputs(currentNode->op2);
+        writeOutputs(currentNode->op3);
+        writeOutputs(currentNode->op4);
+
+        for (auto &node : currentNode->list) {
+            writeOutputs(node);
+        }
+    }
 };
 
 #endif //SPO_COMPILER_SRC_TRANSLATOR_HPP_
