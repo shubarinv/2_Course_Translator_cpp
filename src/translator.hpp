@@ -31,7 +31,7 @@ public:
         outputFile->open("output.asm");
         *outputFile << "global _start\n";
         writeFunctions();
-        writeVariables();
+        writeVariableDeclaration();
         writeMain();
         outputFile->close();
     }
@@ -42,7 +42,7 @@ public:
         }
     }
 
-    void writeVariables() {
+    void writeVariableDeclaration() {
         *outputFile << "section .data\n";
         for (auto &var:localVariables->getVariables()) {
             *outputFile << "\t" << var->getName() << "\t";
@@ -147,18 +147,10 @@ public:
         }
         if (currentNode->value == ":=") {
             *outputFile << "mov ";
-            if (currentNode->op1->type == Node::nodeType::VAR) {
-                *outputFile << "[" << currentNode->op1->value << "]";
-            } else if (currentNode->op1->type == Node::nodeType::CONSTANT) {
-                *outputFile << currentNode->op1->value;
-            }
+            writeValue(currentNode->op1);
             *outputFile << ", ";
             if (currentNode->op2->type != Node::nodeType::BINOP) {
-                if (currentNode->op2->type == Node::nodeType::VAR) {
-                    *outputFile << "[" << currentNode->op2->value << "]";
-                } else if (currentNode->op2->type == Node::nodeType::CONSTANT) {
-                    *outputFile << currentNode->op2->value;
-                }
+                writeValue(currentNode->op2);
             } else {
                 writeMathOPs(currentNode);
             }
@@ -166,14 +158,10 @@ public:
         }
     }
 
-    void writeMathOPs(Node *currentNode) {
+    [[deprecated]] void writeMathOPs(Node *currentNode) {
         if (currentNode->op2->type != Node::nodeType::BINOP) {
             *outputFile << "mov\tecx, ";
-            if (currentNode->op1->type == Node::nodeType::VAR) {
-                *outputFile << "[" << currentNode->op1->value << "]";
-            } else if (currentNode->op1->type == Node::nodeType::CONSTANT) {
-                *outputFile << currentNode->op1->value;
-            }
+            writeValue(currentNode->op1);
             *outputFile << "\n";
             if (currentNode->value == "+") {
                 *outputFile << "add\t";
@@ -185,27 +173,15 @@ public:
                 *outputFile << "div\t";
             }
             *outputFile << "ecx, ";
-            if (currentNode->op2->type == Node::nodeType::VAR) {
-                *outputFile << "[" << currentNode->op2->value << "]";
-            } else if (currentNode->op2->type == Node::nodeType::CONSTANT) {
-                *outputFile << currentNode->op2->value;
-            }
+            writeValue(currentNode->op2);
             *outputFile << "\n";
         } else {
             Node *tmp = currentNode->op2;
             while (tmp->type == Node::nodeType::BINOP) {
-                if (tmp->op1->type == Node::Node::nodeType::VAR) {
-                    *outputFile << "[" << tmp->op1->value << "]" << tmp->value;
-                } else {
-                    *outputFile << tmp->op1->value << tmp->value;
-                }
+                writeValue(tmp->op1);
                 tmp = tmp->op2;
             }
-            if (tmp->type == Node::Node::nodeType::VAR) {
-                *outputFile << "[" << tmp->value << "]";
-            } else {
-                *outputFile << tmp->value;
-            }
+            writeValue(tmp);
         }
     }
 
@@ -263,6 +239,26 @@ public:
         for (auto &node : currentNode->list) {
             writeOutputs(node);
         }
+    }
+
+    void writeValue(Node *currentNode) {
+        if (currentNode->type == Node::nodeType::VAR) {
+            *outputFile << "[" << currentNode->value << "]";
+        } else if (currentNode->type == Node::nodeType::CONSTANT) {
+            *outputFile << currentNode->value;
+        } else if (currentNode->type == Node::nodeType::STR) {
+            throw NotImplementedException("writeValue: String values are not supported");
+        }
+    }
+
+    void outputConstructor(const std::string &instruction = "",
+                           const std::string &op1 = "", const std::string &op2 = "",
+                           const std::string &comment = "") {
+        if (!instruction.empty()) *outputFile << instruction << " ";
+        if (!op1.empty()) *outputFile << op1 << ", ";
+        if (!op2.empty()) *outputFile << op2;
+        if (!comment.empty()) *outputFile << "\t;" << comment;
+        *outputFile << "\n";
     }
 };
 
