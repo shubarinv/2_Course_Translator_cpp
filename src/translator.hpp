@@ -29,7 +29,8 @@ class Translator {
 
   void translate() {
 	outputFile->open("output.asm");
-	*outputFile << "global _start\n";
+	*outputFile << "global _start\n"
+				   "extern printf\n";
 	writeFunctions();
 	writeVariableDeclaration();
 	writeMain();
@@ -112,6 +113,9 @@ class Translator {
 	if (currentNode->type == Node::nodeType::BINOP) {
 	  writeBinOPs(currentNode);
 	}
+	if (currentNode->type == Node::nodeType::OUTPUT) {
+	  writeOutputs(currentNode);
+	}
 
 	goThroughTree(currentNode->op1);
 	goThroughTree(currentNode->op2);
@@ -193,16 +197,17 @@ class Translator {
   }
 
   void writeOutputs(Node *currentNode) {
-	throw NotImplementedException("writeOutputs()");
-	if (currentNode == nullptr)return;
+	if (currentNode->op1->type != Node::nodeType::EXPR) {
+	  outputConstructor("mov", "edx", std::to_string(currentNode->op1->value.size() + 1),
+						"output msg length(in bytes)+0Ah(line feed char):" + std::to_string(currentNode->op1->value.size() + 1));
+	  *outputFile << "mov ecx,";
+	  writeValue(currentNode->op1);
+	  *outputFile << "+0Ah\n";
+	  *outputFile << "mov     ebx, 1\n"
+					 "mov     eax, 4\n"
+					 "int     80h\n";
+	} else {
 
-	writeOutputs(currentNode->op1);
-	writeOutputs(currentNode->op2);
-	writeOutputs(currentNode->op3);
-	writeOutputs(currentNode->op4);
-
-	for (auto &node : currentNode->list) {
-	  writeOutputs(node);
 	}
   }
 
@@ -214,10 +219,8 @@ class Translator {
   void writeValue(Node *currentNode) {
 	if (currentNode->type == Node::nodeType::VAR) {
 	  *outputFile << "[" << currentNode->value << "]";
-	} else if (currentNode->type == Node::nodeType::CONSTANT) {
+	} else if (currentNode->type == Node::nodeType::CONSTANT || currentNode->type == Node::nodeType::STR) {
 	  *outputFile << currentNode->value;
-	} else if (currentNode->type == Node::nodeType::STR) {
-	  throw NotImplementedException("writeValue: String values are not supported");
 	}
   }
 

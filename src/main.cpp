@@ -29,7 +29,8 @@ int main() {
   auto *semanticAnalyzer = new SemanticAnalyzer(filename, parser);
   auto *translator = new Translator(semanticAnalyzer);
 
-
+  std::cout << "=====- Assembler output -=====" << std::endl;
+  std::system("nasm -f macho64 output.asm");
   // std::system("pause");
   return 0;
 }
