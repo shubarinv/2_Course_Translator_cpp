@@ -13,6 +13,10 @@
 
 class Token {
  public:
+
+  /**
+   * @brief типы распознаваемых токенов
+   */
   enum class tokenType {
 	Comparison,
 	Semicolon,
@@ -97,26 +101,52 @@ class Token {
   tokenType type = tokenType::Undefined;
 
  public:
+  /**
+   * @brief возвращает тип токена
+   * @return
+   */
   [[nodiscard]] tokenType getType() const { return type; }
 
  private:
+  /**
+   * @brief значение токена
+   */
   std::string text;
 
  public:
+  /**
+   * @brief позволяет получить значение токена
+   * @return
+   */
   [[nodiscard]] const std::string &getText() const { return text; }
 
  private:
+  /**
+   * @brief Проверяет является ли строка числом
+   * @param str строка
+   * @return true- если является, false иначе
+   */
   static bool isNumber(const std::string &str) {
 	return !str.empty() &&
 		std::find_if(str.begin(), str.end(), [](unsigned char c) {
 		  return !std::isdigit(c);
 		}) == str.end();
   }
+  /**
+   * @brief переводит строку в строчную
+   * @param str
+   * @return строку написанную строчными буквами
+   */
   static std::string toLowerCase(std::string str) {
 	for (auto &c: str) c = tolower(c);
 	return str;
   }
  public:
+  /**
+   * @brief Определяет тип токена
+   * @param str строка
+   * @return тип токена
+   */
   static tokenType determineTokenType(std::string str) {
 	using namespace std;
 	boost::regex IdRegex("^[a-zA-Z_$][a-zA-Z_$0-9]*$");
@@ -261,6 +291,11 @@ class Token {
 	type = determineTokenType(text);
   }
 
+  /**
+   * @brief Переводит тип токена в читабельный вид
+   * @param _type (номер типа токена)
+   * @return возвращет строку в которой написан тип токена
+   */
   static std::string typeToString(tokenType _type) {
 	switch (_type) {
 	  case (tokenType::Assignment):return "Assignment";

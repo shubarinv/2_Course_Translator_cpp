@@ -11,20 +11,20 @@
 class Node {
  public:
   enum class nodeType {
-	START,
+	START, // начало программы
 	EXPR,
 	STATEMENT,
 	IF,
 	ELSE,
-	VAR,
-	NODE,
+	VAR, // переменная
+	NODE, // узел
 	CONSTANT, // Число
 	ADD,  // Сложение
 	SUB,  // Вычитание
 	MUL, // Умножение
 	DIV,   // Деление
-	BINOP,
-	STR,
+	BINOP, // бинарная операция
+	STR, // строка
 	FACTOR,
 	PAR,
 	TERM,
@@ -79,37 +79,58 @@ class Node {
   }
 };
 
+/**
+ * @brief язел числа
+ */
 class NumberNode : public Node {
  public:
   explicit NumberNode(std::string value) : Node(Node::nodeType::CONSTANT, std::move(value)) {}
 };
 
+/**
+ * @brief узел бинарного выражения
+ */
 class binOpNode : public Node {
  public:
   binOpNode(Node *lhs, std::string operation, Node *rhs) : Node(Node::nodeType::BINOP, std::move(operation), lhs,
 																rhs) {}
 };
 
+/**
+ * @brief узел переменной
+ */
 class VarNode : public Node {
  public:
   explicit VarNode(std::string name) : Node(Node::nodeType::VAR, std::move(name)) {}
 };
 
+/**
+ * @brief узел строки
+ */
 class StringNode : public Node {
  public:
   explicit StringNode(std::string value) : Node(Node::nodeType::STR, std::move(value)) {}
 };
 
+/**
+ * @brief узел скобки
+ */
 class ParenNode : public Node {
  public:
   explicit ParenNode(std::string paren) : Node(Node::nodeType::PAR, std::move(paren)) {}
 };
 
+/**
+ * @brief узел списка переменных
+ */
 class VarList : public Node {
  public:
   VarList() : Node(Node::nodeType::VARLIST) {}
 };
 
+/**
+ * @brief узел с условием
+ */
 class ifNode : public Node {
  public:
   ifNode(Node *condition, Node *action, Node *elseStatement) : Node(Node::nodeType::IF, "", condition, action,

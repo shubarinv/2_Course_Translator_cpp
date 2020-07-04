@@ -22,14 +22,25 @@ class SemanticAnalyzer {
   Parser *parser{};
   VariableTable *variables{};
  public:
+  /**
+   * @brief Возвращает объявленные переменные
+   * @return
+   */
   [[nodiscard]] VariableTable *getVariables() const {
 	return variables;
   }
 
+  /**
+   * @brief Возвращает объявленные глобальные переменные
+   * @return
+   */
   [[nodiscard]] VariableTable *getGlobalVariables() const {
 	return globalVariables;
   }
-
+  /**
+   * @brief возвращает известные функции
+   * @return
+   */
   [[nodiscard]]FunctionTable *getFunctions() const {
 	return functions;
   }
@@ -49,6 +60,12 @@ class SemanticAnalyzer {
   }
 
  private:
+  /**
+   * @brief определяет тип переменной
+   * @param currentNode
+   * @param func функция в которой переменная находится
+   * @return
+   */
   Variable::varType getVariableType(Node *currentNode, Function *func = nullptr) {
 	if (func != nullptr) {
 	  if (func->variables.isVarDefined(currentNode->value)) {
@@ -69,6 +86,9 @@ class SemanticAnalyzer {
 	return Variable::varType::UNKNOWN;
   }
 
+  /**
+   * @brief проверяет код
+   */
   void analyze() {
 	std::cout << "=======================\n SemanticAnalyzer \n===========" << std::endl;
 	lookForVariableDeclaration();
@@ -105,6 +125,10 @@ class SemanticAnalyzer {
 
   }
 
+  /**
+   * @brief ищет функции и переменные
+   * @param currentNode
+   */
   void lookForFunctionsAndProcedures(Node *currentNode) {
 	// если текущая нода ноль, то делать с ней ничего нельзя
 	// так что выходим из функции
@@ -147,6 +171,12 @@ class SemanticAnalyzer {
 	}
   }
 
+  /**
+   * @brief объявлеят переменные
+   * @param currentNode
+   * @param parentFunction
+   * @param bGlobal
+   */
   void declareVariables(Node *currentNode, Function *parentFunction = nullptr, bool bGlobal = false) {
 	// если текущая нода ноль, то делать с ней ничего нельзя
 	// так что выходим из функции
@@ -181,6 +211,11 @@ class SemanticAnalyzer {
 	}
   }
 
+  /**
+   * @brief проверяет была ли переменная объявлена перед использованием
+   * @param currentNode
+   * @param func
+   */
   void checkVariableDeclaration(Node *currentNode, Function *func = nullptr) {
 	if (currentNode == nullptr)
 	  return;
@@ -207,7 +242,11 @@ class SemanticAnalyzer {
 	  checkVariableDeclaration(node, func);
 	}
   }
-
+/**
+ * @brief проверят совместимы ли типы
+ * @param currentNode
+ * @param func
+ */
   void checkTypeMismatch(Node *currentNode, Function *func = nullptr) {
 	if (currentNode == nullptr)return;
 
@@ -222,6 +261,12 @@ class SemanticAnalyzer {
 	}
   }
 
+  /**
+   * @brief сравнимает типы переменных с эталоном
+   * @param currentNode
+   * @param func
+   * @param ref
+   */
   void compareVariableTypes(Node *currentNode, Function *func = nullptr, Variable::varType *ref = nullptr) {
 	if (ref == nullptr) {
 	  if (currentNode->type == Node::nodeType::BINOP) {
@@ -257,6 +302,10 @@ class SemanticAnalyzer {
 	  }
 	}
   }
+  /**
+   * @brief проверяет правильность вызова функций
+   * @param currentNode
+   */
   void checkFunctionCalls(Node *currentNode) {
 	if (currentNode == nullptr)
 	  return;

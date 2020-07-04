@@ -22,15 +22,29 @@ class Lexer {
   std::string program;
 
  public:
+  /**
+   * @brief Переходит к следущему токену
+   */
   void nextToken() {
 	tokens.pop_front();
 	std::cout << "Current token: " << tokens.front().getText() << std::endl;
   }
 
+  /**
+   * @brief Возвращет текущий токен
+   * @return возвращет переменную типа Token
+   */
   Token *getCurrentToken() { return &tokens.front(); }
 
+  /**
+   * @brief Возвращет все токены
+   * @return возвращет все токены в двусторонней очереди
+   */
   [[nodiscard]] std::deque<Token> getTokens() const { return tokens; }
 
+  /**
+   * @brief Выводит все токены и их типы в консоль
+   */
   void printAllTokens() {
 	using namespace std;
 	std::deque<Token> tmp = tokens;
@@ -46,6 +60,11 @@ class Lexer {
   }
 
  private:
+  /**
+   * @brief делает из char string
+   * @param x char
+   * @return строка полученая из char
+   */
   static std::string getString(char x) {
 	// string class has a constructor
 	// that allows us to specify size of
@@ -57,6 +76,10 @@ class Lexer {
 	return s;
   }
 
+  /**
+   * @brief Читает указанный файл
+   * @param _filename имя файла
+   */
   void loadFile(const std::string &_filename) {
 	std::ifstream file(_filename);
 	if (file.is_open()) {
@@ -66,6 +89,11 @@ class Lexer {
 	}
   }
 
+  /**
+   * @brief Проверяет является ли символ разделителем строки
+   * @param character символ
+   * @return true -если является, иначе false
+   */
   static bool isWordSep(char character) {
 	return character == '\0' || character == ' ' || character == '\t' || character == '\n' || character == '\r';
   }
@@ -73,8 +101,15 @@ class Lexer {
  public:
   explicit Lexer(const std::string &_filename) { loadFile(_filename); }
 
+  /**
+   * @brief Позволяет переписать текст который был прочитан из файла, текстом который указан параметром этой функции
+   * @param _program текст которым будет перезаписан прочитанный из файла текст
+   */
   void insertText(std::string _program) { program = std::move(_program); }
 
+  /**
+   * @brief разбивает строку на токены
+   */
   void tokenize() {
 	using namespace std;
 	string lexeme;
@@ -122,12 +157,19 @@ class Lexer {
 	  tokens.emplace_back(lexeme);
 	  lexeme = "";
 	}
-	cout << "\n\n---- TOKENIZATION DONE -----\n\n" <<
-		 endl;
+	cout << "\n\n---- TOKENIZATION DONE -----\n\n" << endl;
   }
+
+  /**
+   * @brief позволяет вставить токен вперед очереди
+   * @param token токен который надо поставить в начало очереди
+   */
   void pushToFront(const std::string &token) {
 	tokens.emplace_front(token);
   }
+  /**
+   * @brief печатает токены в файл
+   */
   void printToFile() {
 	using namespace std;
 	ofstream out("output.txt");

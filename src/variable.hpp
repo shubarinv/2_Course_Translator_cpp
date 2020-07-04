@@ -9,6 +9,9 @@
 #include <utility>
 class Variable {
  public:
+  /**
+   * @brief поддерживаемые типы переменных
+   */
   enum varType {
 	INTEGER,
 	DOUBLE,
@@ -26,24 +29,57 @@ class Variable {
   Variable(std::string _name, varType _type, bool bIsParam = false) : name(std::move(_name)), type(_type), isParam(bIsParam) {}
 
  private:
+  /**
+   * @brief имя переменной
+   */
   std::string name;
+  /**
+   * @brief тип переменной
+   */
   varType type;
+  /**
+   * @brief является ли переменная параметром
+   */
   bool isParam = false;
  public:
+  /**
+   * @brief возвращает является ли переменная параметром
+   * @return
+   */
   bool getIsParam() const {
 	return isParam;
   }
  public:
+  /**
+   * @brief возвращает имя переменной
+   * @return
+   */
   [[nodiscard]] const std::string &getName() const {
 	return name;
   }
+  /**
+   * @brief возвращает тип переменой
+   * @return
+   */
   [[nodiscard]] varType getType() const {
 	return type;
   }
+
+  /**
+   * @brief переводит в нижний регистр
+   * @param str
+   * @return
+   */
   static std::string toLowerCase(std::string str) {
 	for (auto &c: str) c = tolower(c);
 	return str;
   }
+
+  /**
+   * @brief определяет тип переменной
+   * @param _value
+   * @return
+   */
   static varType determineVarType(std::string _value) {
 	_value = toLowerCase(_value);
 	if (_value == "integer")
@@ -72,6 +108,12 @@ class Variable {
 	  return varType::INTEGER;
 	} else return varType::UNKNOWN;
   }
+
+  /**
+   * @brief делает тип переменоной читабельным
+   * @param type
+   * @return
+   */
   static std::string varTypeToString(varType type) {
 	switch (type) {
 	  case varType::INTEGER: return "integer";
@@ -89,6 +131,12 @@ class Variable {
 	}
 	return "Undefined";
   }
+  /**
+   * @brief проверяет типы на совместимость
+   * @param type1
+   * @param type2
+   * @return
+   */
   static bool areTypesCompatible(varType type1, varType type2) {
 	if (type1 == varType::INTEGER ||
 		type1 == varType::DOUBLE ||

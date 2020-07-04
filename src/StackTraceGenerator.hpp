@@ -13,6 +13,9 @@
 #include <algorithm>
 #include <memory>
 
+/**
+ * @brief Генерирует stack trace но ТОЛЬКО на Mac OS
+ */
 class StackTraceGenerator {
  private:
 
@@ -63,25 +66,25 @@ class StackTraceGenerator {
 
 	   */
 
-        // split the string, take out chunks out of stack trace
-        // we are primarily interested in module, function and address
-        sscanf(strs[i], "%*s %s %s %s %*s %d", &moduleName, &addr, &functionSymbol, &offset);
+	  // split the string, take out chunks out of stack trace
+	  // we are primarily interested in module, function and address
+	  sscanf(strs[i], "%*s %s %s %s %*s %d", &moduleName, &addr, &functionSymbol, &offset);
 
-        int validCppName = 0;
-        //  if this is a C++ library, symbol will be demangled
-        //  on success function returns 0
-        //
-        char *functionName = abi::__cxa_demangle(functionSymbol, nullptr, nullptr, &validCppName);
+	  int validCppName = 0;
+	  //  if this is a C++ library, symbol will be demangled
+	  //  on success function returns 0
+	  //
+	  char *functionName = abi::__cxa_demangle(functionSymbol, nullptr, nullptr, &validCppName);
 
-        char stackFrame[4096] = {};
-        if (validCppName == 0) // success
-        {
-            sprintf(stackFrame, "(%s)\t0x%s — %s + %d",
-                    moduleName, addr, functionName, offset);
-        } else {
-            //  in the above traceback (in comments) last entry is not
-            //  from C++ binary, last frame, libdyld.dylib, is printed
-            //  from here
+	  char stackFrame[4096] = {};
+	  if (validCppName == 0) // success
+	  {
+		sprintf(stackFrame, "(%s)\t0x%s — %s + %d",
+				moduleName, addr, functionName, offset);
+	  } else {
+		//  in the above traceback (in comments) last entry is not
+		//  from C++ binary, last frame, libdyld.dylib, is printed
+		//  from here
 		sprintf(stackFrame, "(%s)\t0x%s — %s + %d",
 				moduleName, addr, functionName, offset);
 	  }

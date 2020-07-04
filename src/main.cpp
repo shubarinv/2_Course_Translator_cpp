@@ -11,12 +11,12 @@ using namespace boost;
 
 int main() {
 
-    std::cout<<"Please enter name of the file you want to compile(should end with .dpr): "<<std::endl;
-    std::string filename="delphiTestFile1.dpr";
-   // std::cin >> filename;
+  std::cout << "Please enter name of the file you want to compile(should end with .dpr): " << std::endl;
+  std::string filename = "delphiTestFile1.dpr";
+  // std::cin >> filename;
 
   // Код находящийся ниже проверяет наличие указанного файла и его расширение
-  std::string requiredFileExtension = ".dpr";
+  std::string requiredFileExtension = ".dpr"; // расширение файла
   while (!filesystem::exists(filename) || !boost::algorithm::ends_with(filename, requiredFileExtension)) {
 	if (!boost::algorithm::ends_with(filename, requiredFileExtension)) // проверка расширения файла
 	  std::cout << "Unexpected file extension" << std::endl;
