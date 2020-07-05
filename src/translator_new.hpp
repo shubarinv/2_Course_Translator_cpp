@@ -78,7 +78,7 @@ class Translator_new {
 	  if (currentNode->op1->type != Node::nodeType::EXPR) {
 		asmCode += "push rbp\n";
 		asmCode += "mov rdi,fmt" + std::to_string(fmtsNum) + "\n";
-		asmCode += "mov rsi,[rel " + currentNode->op1->value + "]\n";
+		asmCode += "mov rsi," + writeValue(currentNode->op1) + "\n";
 		asmCode += "mov rax,0\n";
 		asmCode += "call _printf\n";
 		asmCode += "pop rbp\n";
