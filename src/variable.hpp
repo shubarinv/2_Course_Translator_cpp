@@ -162,6 +162,22 @@ class Variable {
 	return false;
   }
 
+  std::string getAsmType() {
+	switch (type) {
+	  case INTEGER:return "dword";
+	  case DOUBLE:
+	  case REAL: return "qword";
+	  case SHORTINT:
+	  case SMALLINT:
+	  case BYTE: return "byte";
+	  case LONGINT:return "qword";
+	  case WORD:return "word";
+	  case CHAR:return "byte";
+	  case WIDECHAR:return "dword";
+	  case STRING:return "byte";
+	  case UNKNOWN:break;
+	}
+  }
 };
 
 #endif //SPO_COMPILER_SRC_VARIABLE_HPP_

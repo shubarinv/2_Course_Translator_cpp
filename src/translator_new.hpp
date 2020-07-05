@@ -19,6 +19,7 @@ class Translator_new {
   std::string asmData;
   std::string asmCode;
   std::string asmBSS;
+  std::string afterMain;
 
  public:
   explicit Translator_new(SemanticAnalyzer *_semanticAnalyzer) {
@@ -29,6 +30,7 @@ class Translator_new {
 	globalVariables = _semanticAnalyzer->getGlobalVariables();
 	functions = _semanticAnalyzer->getFunctions();
 	tree = _semanticAnalyzer->getTree();
+	translate();
   }
 
   void writeHeader() {
@@ -43,10 +45,14 @@ class Translator_new {
 	  program += ".data\n";
 	  program += asmData;
 	}
-	program += "global main\n";
+	program += "global _main\n";
 	program += "section .text\n";
-	program += "main:\n";
+	program += "_main:\n";
 	program += asmCode;
+	program += "ret\n";
+	if (!afterMain.empty()) {
+	  program += afterMain;
+	}
 	if (!asmBSS.empty()) {
 	  program += "section .bss\n";
 	  program += asmBSS;
@@ -106,7 +112,26 @@ class Translator_new {
 	}
   }
   void writeBinOP(Node *currentNode) {
-    
+	if (currentNode->value == ":=") {
+	  asmCode += "mov r8,";
+	  if (currentNode->op2->type != Node::nodeType::BINOP) {
+		asmCode += writeValue(currentNode->op2) + "\n";
+	  }
+	  asmCode += "mov [rel " + writeValue(currentNode->op1) + "] ,r8\n";
+	}
+  }
+
+  /**
+ * @brief This func will put val in [] if it is a var, will paste val w\o
+ * them otherwise
+ * @param currentNode node with value
+ */
+  std::string writeValue(Node *currentNode) {
+	if (currentNode->type == Node::nodeType::VAR) {
+	  return "" + currentNode->value + "";
+	} else if (currentNode->type == Node::nodeType::CONSTANT || currentNode->type == Node::nodeType::STR) {
+	  return currentNode->value;
+	}
   }
 };
 
