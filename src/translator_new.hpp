@@ -20,7 +20,8 @@ class Translator_new {
   std::string asmCode;
   std::string asmBSS;
   std::string afterMain;
-
+ private:
+  int fmtsNum = 0;
  public:
   explicit Translator_new(SemanticAnalyzer *_semanticAnalyzer) {
 	if (_semanticAnalyzer == nullptr) {
@@ -69,7 +70,21 @@ class Translator_new {
 	if (currentNode->type == Node::nodeType::FUNCCALL) {
 	  throw NotImplementedException("Sorry functions are not supported yet");
 	}
-	if (currentNode->type == Node::nodeType::OUTPUT) { throw NotImplementedException(); }
+	if (currentNode->type == Node::nodeType::OUTPUT) {
+	  if (asmHeader.empty()) {
+		asmHeader += "extern\t_printf\t\t; the C function, to be called";
+	  }
+	  asmData += "fmt" + std::to_string(fmtsNum) + " db \"" + printfFormatGenerator(currentNode) + "\",10,0\n";
+	  if (currentNode->op1->type != Node::nodeType::EXPR) {
+		asmCode += "push rbp\n";
+		asmCode += "mov rdi,fmt" + std::to_string(fmtsNum) + "\n";
+		asmCode += "mov rsi," + currentNode->op1->value + "\n";
+		asmCode += "mov rax,0\n";
+		asmCode += "call _printf\n";
+		asmCode += "pop rbp\n";
+	  } else {}
+	  fmtsNum++;
+	}
 	if (currentNode->type == Node::nodeType::INPUT) { throw NotImplementedException(); }
 	if (currentNode->type == Node::nodeType::FOR_LOOP) { throw NotImplementedException(); }
 	if (currentNode->type == Node::nodeType::PROCEDURE) { throw NotImplementedException(); }
@@ -77,6 +92,8 @@ class Translator_new {
 	if (currentNode->type == Node::nodeType::IF) { throw NotImplementedException(); }
 	if (currentNode->type == Node::nodeType::BINOP) {
 	  writeBinOP(currentNode);
+	  return; // since this is a binary operation, we don't expect that there will be anything other than op1 and op2, which will already
+	  // be written by the time program returns here
 	}
 	goThroughTree(currentNode->op1);
 	goThroughTree(currentNode->op2);
@@ -88,6 +105,64 @@ class Translator_new {
 	}
   }
 
+  std::string printfFormatGenerator(Node *currentNode, std::string *prevStr = nullptr) {
+	std::string tmp;
+	if (currentNode->op1->type != Node::nodeType::EXPR) {
+	  if (currentNode->op1->type == Node::nodeType::VAR) {
+		switch (localVariables->getVarByName(currentNode->op1->value)->getType()) {
+		  case Variable::INTEGER:
+			if (prevStr == nullptr) tmp = "%ld";
+			else *prevStr += "%ld";
+			return tmp;
+		  case Variable::DOUBLE:
+		  case Variable::REAL:
+			if (prevStr == nullptr) tmp = "%f";
+			else *prevStr += "%f";
+			return tmp;
+		  case Variable::SHORTINT:
+		  case Variable::SMALLINT:
+		  case Variable::BYTE:
+			if (prevStr == nullptr) tmp = "%hd";
+			else *prevStr += "%hd";
+			return tmp;
+		  case Variable::LONGINT:
+			if (prevStr == nullptr)tmp = "%lli";
+			else *prevStr += "%lli";
+			return tmp;
+		  case Variable::WORD:
+			if (prevStr == nullptr) tmp = "%s";
+			else *prevStr += "%s";
+			return tmp;
+		  case Variable::CHAR:
+			if (prevStr == nullptr)tmp = "%c";
+			else *prevStr += "%c";
+			return tmp;
+		  case Variable::WIDECHAR:
+			if (prevStr == nullptr)tmp = "%s";
+			else *prevStr += "%s";
+			return tmp;
+		  case Variable::STRING:
+			if (prevStr == nullptr)tmp = "%s";
+			else *prevStr += "%s";
+			return tmp;
+		  case Variable::UNKNOWN:break;
+		}
+	  } else if (currentNode->op1->type == Node::nodeType::CONSTANT) {
+		if (prevStr == nullptr) tmp = "%ld";
+		else *prevStr += "%ld";
+		return tmp;
+	  } else if (currentNode->op1->type == Node::nodeType::STR) {
+		if (prevStr == nullptr)tmp = "%s";
+		else *prevStr += "%s";
+		return tmp;
+	  }
+	} else {
+	  for (auto &param : currentNode->op1->list) {
+		tmp += printfFormatGenerator(param) + " ";
+	  }
+	}
+	return tmp;
+  }
   void writeVariables() {
 	for (auto &var:localVariables->getVariables()) {
 	  asmBSS += var->getName() + ":\t";
@@ -121,25 +196,25 @@ class Translator_new {
 	  if (currentNode->op2->type != Node::nodeType::BINOP) {
 		asmCode += writeValue(currentNode->op2) + "\n";
 	  } else {
-		writeMathOPs(currentNode->op2);
+		writeBinOPs(currentNode->op2);
 		asmCode += "\n";
 	  }
 	  asmCode += "mov [rel " + writeValue(currentNode->op1) + "] ,r8\n";
 	} else {
-	  // writeMathOPs(currentNode);
+	  writeBinOPs(currentNode);
 	}
   }
-  void writeMathOPs(Node *currentNode) {
+  void writeBinOPs(Node *currentNode) {
 	if (currentNode->op1 == nullptr || currentNode->op2 == nullptr) {
 	  asmCode += "\n";
 	  return;
 	}
 	if (currentNode->op1->type == Node::nodeType::BINOP) {
-	  writeMathOPs(currentNode->op1);
+	  writeBinOPs(currentNode->op1);
 	} else { asmCode += writeValue(currentNode->op1); }
 	asmCode += " " + currentNode->value + " ";
 	if (currentNode->op2->type == Node::nodeType::BINOP) {
-	  writeMathOPs(currentNode->op2);
+	  writeBinOPs(currentNode->op2);
 	} else { asmCode += writeValue(currentNode->op2); }
   }
   /**
