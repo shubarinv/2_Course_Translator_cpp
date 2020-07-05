@@ -78,7 +78,7 @@ class Translator_new {
 	  if (currentNode->op1->type != Node::nodeType::EXPR) {
 		asmCode += "push rbp\n";
 		asmCode += "mov rdi,fmt" + std::to_string(fmtsNum) + "\n";
-		asmCode += "mov rsi," + currentNode->op1->value + "\n";
+		asmCode += "mov rsi,[rel " + currentNode->op1->value + "]\n";
 		asmCode += "mov rax,0\n";
 		asmCode += "call _printf\n";
 		asmCode += "pop rbp\n";
@@ -111,8 +111,8 @@ class Translator_new {
 	  if (currentNode->op1->type == Node::nodeType::VAR) {
 		switch (localVariables->getVarByName(currentNode->op1->value)->getType()) {
 		  case Variable::INTEGER:
-			if (prevStr == nullptr) tmp = "%ld";
-			else *prevStr += "%ld";
+			if (prevStr == nullptr) tmp = "%i";
+			else *prevStr += "%i";
 			return tmp;
 		  case Variable::DOUBLE:
 		  case Variable::REAL:
@@ -148,8 +148,8 @@ class Translator_new {
 		  case Variable::UNKNOWN:break;
 		}
 	  } else if (currentNode->op1->type == Node::nodeType::CONSTANT) {
-		if (prevStr == nullptr) tmp = "%ld";
-		else *prevStr += "%ld";
+		if (prevStr == nullptr) tmp = "%i";
+		else *prevStr += "%i";
 		return tmp;
 	  } else if (currentNode->op1->type == Node::nodeType::STR) {
 		if (prevStr == nullptr)tmp = "%s";
@@ -167,7 +167,7 @@ class Translator_new {
 	for (auto &var:localVariables->getVariables()) {
 	  asmBSS += var->getName() + ":\t";
 	  switch (var->getType()) {
-		case Variable::INTEGER:asmBSS += "RESD\t 1";
+		case Variable::INTEGER:asmBSS += "RESQ\t 1";
 		  break;
 		case Variable::DOUBLE:
 		case Variable::REAL:asmBSS += "RESQ\t 1";

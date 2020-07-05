@@ -30,7 +30,7 @@ int main() {
   auto *translator = new Translator_new(semanticAnalyzer);
 
   std::cout << "=====- Assembler output -=====" << std::endl;
-  std::system("nasm -fmacho64 output.asm && ld output.o -lSystem && ./a.out");
+  std::system("nasm -fmacho64 -g -F dwarf output.asm && ld output.o -lSystem && ./a.out");
   // std::system("pause");
   return 0;
 }
