@@ -120,22 +120,35 @@ class Translator_new {
 	  asmCode += "mov r8,";
 	  if (currentNode->op2->type != Node::nodeType::BINOP) {
 		asmCode += writeValue(currentNode->op2) + "\n";
+	  } else {
+		writeMathOPs(currentNode->op2);
+		asmCode += "\n";
 	  }
 	  asmCode += "mov [rel " + writeValue(currentNode->op1) + "] ,r8\n";
+	} else {
+	  // writeMathOPs(currentNode);
 	}
   }
-
+  void writeMathOPs(Node *currentNode) {
+	if (currentNode->op1 == nullptr || currentNode->op2 == nullptr) {
+	  asmCode += "\n";
+	  return;
+	}
+	if (currentNode->op1->type == Node::nodeType::BINOP) {
+	  writeMathOPs(currentNode->op1);
+	} else { asmCode += writeValue(currentNode->op1); }
+	asmCode += " " + currentNode->value + " ";
+	if (currentNode->op2->type == Node::nodeType::BINOP) {
+	  writeMathOPs(currentNode->op2);
+	} else { asmCode += writeValue(currentNode->op2); }
+  }
   /**
  * @brief This func will put val in [] if it is a var, will paste val w\o
  * them otherwise
  * @param currentNode node with value
  */
   std::string writeValue(Node *currentNode) {
-	if (currentNode->type == Node::nodeType::VAR) {
-	  return "" + currentNode->value + "";
-	} else if (currentNode->type == Node::nodeType::CONSTANT || currentNode->type == Node::nodeType::STR) {
-	  return currentNode->value;
-	}
+	return currentNode->value;
   }
 };
 
