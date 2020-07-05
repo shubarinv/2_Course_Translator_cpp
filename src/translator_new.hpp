@@ -199,7 +199,7 @@ class Translator_new {
 		writeBinOPs(currentNode->op2);
 		asmCode += "\n";
 	  }
-	  asmCode += "mov [rel " + writeValue(currentNode->op1) + "] ,r8\n";
+	  asmCode += "mov " + writeValue(currentNode->op1) + " ,r8\n";
 	} else {
 	  writeBinOPs(currentNode);
 	}
@@ -223,7 +223,11 @@ class Translator_new {
  * @param currentNode node with value
  */
   std::string writeValue(Node *currentNode) {
-	return currentNode->value;
+	if (currentNode->type == Node::nodeType::VAR) {
+	  return "[rel " + currentNode->value + "]";
+	} else if (currentNode->type == Node::nodeType::CONSTANT || currentNode->type == Node::nodeType::STR) {
+	  return currentNode->value;
+	}
   }
 };
 
