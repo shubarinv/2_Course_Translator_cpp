@@ -22,6 +22,7 @@ class Translator_new {
   std::string afterMain;
  private:
   int fmtsNum = 0;
+  int msgNum = 0;
  public:
   explicit Translator_new(SemanticAnalyzer *_semanticAnalyzer) {
 	if (_semanticAnalyzer == nullptr) {
@@ -78,7 +79,14 @@ class Translator_new {
 	  if (currentNode->op1->type != Node::nodeType::EXPR) {
 		asmCode += "push rbp\n";
 		asmCode += "mov rdi,fmt" + std::to_string(fmtsNum) + "\n";
-		asmCode += "mov rsi," + writeValue(currentNode->op1) + "\n";
+		if (currentNode->op1->type != Node::nodeType::STR)
+		  asmCode += "mov rsi," + writeValue(currentNode->op1) + "\n";
+		else {
+		  asmData += "msg" + std::to_string(msgNum) + " db " + currentNode->op1->value + ",0\n";
+		  //asmData+="len"+std::to_string(msgNum)+" equ $ - msg"+std::to_string(msgNum)+"\n";
+		  asmCode += "mov rsi, msg" + std::to_string(msgNum) + "\n";
+
+		}
 		asmCode += "mov rax,0\n";
 		asmCode += "call _printf\n";
 		asmCode += "pop rbp\n";
