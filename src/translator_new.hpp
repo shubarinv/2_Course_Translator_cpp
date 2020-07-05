@@ -43,7 +43,7 @@ class Translator_new {
 	goThroughTree(tree);
 	program += asmHeader;
 	if (!asmData.empty()) {
-	  program += ".data\n";
+	  program += "section .data\n";
 	  program += asmData;
 	}
 	program += "global _main\n";
@@ -72,7 +72,7 @@ class Translator_new {
 	}
 	if (currentNode->type == Node::nodeType::OUTPUT) {
 	  if (asmHeader.empty()) {
-		asmHeader += "extern\t_printf\t\t; the C function, to be called";
+		asmHeader += "extern\t_printf\t\t; the C function, to be called\n";
 	  }
 	  asmData += "fmt" + std::to_string(fmtsNum) + " db \"" + printfFormatGenerator(currentNode) + "\",10,0\n";
 	  if (currentNode->op1->type != Node::nodeType::EXPR) {
