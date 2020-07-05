@@ -82,6 +82,10 @@ class Translator_new {
 	goThroughTree(currentNode->op2);
 	goThroughTree(currentNode->op3);
 	goThroughTree(currentNode->op4);
+
+	for (auto &node : currentNode->list) {
+	  goThroughTree(node);
+	}
   }
 
   void writeVariables() {
