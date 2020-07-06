@@ -75,7 +75,7 @@ class Translator_new {
 	  if (asmHeader.empty()) {
 		asmHeader += "extern\t_printf\t\t; the C function, to be called\n";
 	  }
-	  asmData += "fmt" + std::to_string(fmtsNum) + " db \"" + printfFormatGenerator(currentNode) + "\",10,0\n";
+	  asmData += "fmt" + std::to_string(fmtsNum) + " db \"" + printfFormatGenerator(currentNode->op1) + "\",10,0\n";
 	  if (currentNode->op1->type != Node::nodeType::EXPR) {
 		asmCode += "push rbp\n";
 		asmCode += "mov rdi,fmt" + std::to_string(fmtsNum) + "\n";
@@ -115,9 +115,9 @@ class Translator_new {
 
   std::string printfFormatGenerator(Node *currentNode, std::string *prevStr = nullptr) {
 	std::string tmp;
-	if (currentNode->op1->type != Node::nodeType::EXPR) {
-	  if (currentNode->op1->type == Node::nodeType::VAR) {
-		switch (localVariables->getVarByName(currentNode->op1->value)->getType()) {
+	if (currentNode->type != Node::nodeType::EXPR) {
+	  if (currentNode->type == Node::nodeType::VAR) {
+		switch (localVariables->getVarByName(currentNode->value)->getType()) {
 		  case Variable::INTEGER:
 			if (prevStr == nullptr) tmp = "%i";
 			else *prevStr += "%i";
@@ -155,11 +155,11 @@ class Translator_new {
 			return tmp;
 		  case Variable::UNKNOWN:break;
 		}
-	  } else if (currentNode->op1->type == Node::nodeType::CONSTANT) {
+	  } else if (currentNode->type == Node::nodeType::CONSTANT) {
 		if (prevStr == nullptr) tmp = "%i";
 		else *prevStr += "%i";
 		return tmp;
-	  } else if (currentNode->op1->type == Node::nodeType::STR) {
+	  } else if (currentNode->type == Node::nodeType::STR) {
 		if (prevStr == nullptr)tmp = "%s";
 		else *prevStr += "%s";
 		return tmp;
@@ -205,7 +205,6 @@ class Translator_new {
 		asmCode += writeValue(currentNode->op2) + "\n";
 	  } else {
 		writeBinOPs(currentNode->op2);
-		asmCode += "\n";
 	  }
 	  asmCode += "mov " + writeValue(currentNode->op1) + " ,r8\n";
 	} else {
@@ -219,11 +218,24 @@ class Translator_new {
 	}
 	if (currentNode->op1->type == Node::nodeType::BINOP) {
 	  writeBinOPs(currentNode->op1);
-	} else { asmCode += writeValue(currentNode->op1); }
-	asmCode += " " + currentNode->value + " ";
+	} else { asmCode += writeValue(currentNode->op1) + "\n"; }
+	if (currentNode->value == "+") {
+	  asmCode += "add r8, ";
+	}
+	if (currentNode->value == "-") {
+	  asmCode += "sub r8, ";
+	}
+	if (currentNode->value == "*") {
+	  asmCode += "mov r9, ";
+	}
+	if (currentNode->value == "/") {
+	  asmCode += "mov r9, ";
+	}
 	if (currentNode->op2->type == Node::nodeType::BINOP) {
 	  writeBinOPs(currentNode->op2);
-	} else { asmCode += writeValue(currentNode->op2); }
+	} else { asmCode += writeValue(currentNode->op2) + "\n"; }
+	if (currentNode->value == "*") { asmCode += "imul r8,r9\n"; }
+	if (currentNode->value == "/") { asmCode += "\nxor rdx,rdx\nmov rax,r8\nidiv r9\nmov r8,rax\n"; }
   }
   /**
  * @brief This func will put val in [] if it is a var, will paste val w\o
