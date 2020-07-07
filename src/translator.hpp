@@ -17,6 +17,7 @@ class Translator {
   std::string program;
   std::string asmHeader;
   std::string asmData;
+  std::string asmBeforeMain;
   std::string asmCode;
   std::string asmBSS;
   std::string afterMain;
@@ -25,6 +26,7 @@ class Translator {
   int outputFmtsNum = 0;
   int msgNum = 0;
   int loopsNum = 0;
+  int ifsNum = 0;
  public:
   explicit Translator(SemanticAnalyzer *_semanticAnalyzer) {
 	if (_semanticAnalyzer == nullptr) {
@@ -51,9 +53,10 @@ class Translator {
 	}
 	program += "global _main\ndefault rel\n";
 	program += "section .text\n";
+	program += asmBeforeMain;
 	program += "_main:\n";
 	program += asmCode;
-	program += "mov rax,0\nret\n";
+	program += "end:\nmov rax,0\nret\n";
 	if (!afterMain.empty()) {
 	  program += afterMain;
 	}
@@ -128,7 +131,34 @@ class Translator {
 	}
 	if (currentNode->type == Node::nodeType::PROCEDURE) { throw NotImplementedException(); }
 	if (currentNode->type == Node::nodeType::FUNCTION) { throw NotImplementedException(); }
-	if (currentNode->type == Node::nodeType::IF) { throw NotImplementedException(); }
+	if (currentNode->type == Node::nodeType::IF) {
+	  if (currentNode->op1->op2->type == Node::nodeType::BINOP) {
+		writeBinOP(currentNode->op1->op2);
+		if (currentNode->op1->op2->value == ">") {
+		  asmCode += "jg";
+		}
+		if (currentNode->op1->op2->value == ">=") {
+		  asmCode += "lge";
+		}
+		if (currentNode->op1->op2->value == "<") {
+		  asmCode += "jl";
+		}
+		if (currentNode->op1->op2->value == "<=") {
+		  asmCode += "jle";
+		}
+		if (currentNode->op1->op2->value == "=") {
+		  asmCode += "je";
+		}
+		asmCode += " cond" + std::to_string(ifsNum) + "\n";
+		asmCode += "jmp afterCond" + std::to_string(ifsNum) + "\n";
+		asmCode += "cond" + std::to_string(ifsNum) + ":\n";
+		goThroughTree(currentNode->op2);
+		asmCode += "afterCond" + std::to_string(ifsNum) + ":\n";
+		ifsNum++;
+
+		return;
+	  }
+	}
 	if (currentNode->type == Node::nodeType::BINOP) {
 	  writeBinOP(currentNode);
 	  return; // since this is a binary operation, we don't expect that there will be anything other than op1 and op2, which will already
@@ -238,15 +268,27 @@ class Translator {
 		writeBinOPs(currentNode->op2);
 	  }
 	  asmCode += "mov " + writeValue(currentNode->op1) + " ,r8\n";
-	} else {
+	} else if (currentNode->value == ">" || currentNode->value == "<" || currentNode->value == ">=" || currentNode->value == "<="
+		|| currentNode->value == "=") {
+	  asmCode += "mov r8,";
+	  if (currentNode->op1->type != Node::nodeType::BINOP) {
+		asmCode += writeValue(currentNode->op1) + "\n";
+	  } else { writeBinOPs(currentNode->op1); }
+	  asmCode += "mov r9,";
+	  if (currentNode->op2->type != Node::nodeType::BINOP) {
+		asmCode += writeValue(currentNode->op2) + "\n";
+	  } else { writeBinOPs(currentNode->op2); }
+	  asmCode += "cmp r8,r9\n";
+	} else
 	  writeBinOPs(currentNode);
-	}
   }
   void writeBinOPs(Node *currentNode) {
 	if (currentNode->op1 == nullptr || currentNode->op2 == nullptr) {
 	  asmCode += "\n";
 	  return;
 	}
+	//if(currentNode->value==">"||currentNode->value=="<"||currentNode->value==">="||currentNode->value=="<=")return;
+
 	if (currentNode->op1->type == Node::nodeType::BINOP) {
 	  writeBinOPs(currentNode->op1);
 	} else { asmCode += writeValue(currentNode->op1) + "\n"; }
