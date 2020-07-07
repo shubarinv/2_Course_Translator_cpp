@@ -11,26 +11,57 @@
 class Function {
   std::string name;
  public:
+  /**
+   * @brief Возвращает имя функции
+   * @return
+   */
   [[nodiscard]] const std::string &getName() const {
 	return name;
   }
+  /**
+   * @brief адрес функции
+   */
   Node *funcAddr{};
+
+  /**
+   * @brief Возвращает адресс функции
+   * @return
+   */
   [[nodiscard]] Node *getFuncAddr() const {
 	return funcAddr;
   }
  private:
+  /**
+   * @brief Возвращаемая переменная
+   */
   Variable *returnVar{};
  public:
+  /**
+   * @brief возвращает переменную которую надо вернуть
+   * @return
+   */
   [[nodiscard]] Variable *getReturnVar() const {
 	return returnVar;
   }
  public:
+  /**
+   * @brief позволяет задать возвращаемую переменную
+   * @param return_var
+   */
   void setReturnVar(Variable *return_var) {
 	returnVar = return_var;
   }
+  /**
+   * @brief Возвращет переменные которые принадлежат функции
+   * @return
+   */
   [[nodiscard]] std::vector<Variable *> getVariables() const {
 	return variables.getVariables();
   }
+  /**
+   * @brief Возвращает параметры функции
+   * @return
+   */
   std::vector<Variable *> getParams() {
 	std::vector<Variable *> params;
 	for (auto &var :getVariables()) {

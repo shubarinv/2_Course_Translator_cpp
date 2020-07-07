@@ -35,12 +35,21 @@ class Parser {
 	std::cout << "\n\n----PARSING DONE -----\n\n" << std::endl;
   }
 
+  /**
+   * @brief Конструктор парсера
+   * @param _filename название файла с кодом на Delphi
+   */
   explicit Parser(const std::string &_filename) {
 	lexer = new Lexer(_filename);
 	lexer->tokenize();
 
   }
  private:
+
+  /**
+   * @brief Проверяет соответствует ли тип токена тому который ожидался, если несоответствует выкидывает исключение
+   * @param tokenType ожидаемый тип токена
+   */
   void expect(Token::tokenType tokenType) {
 	if (lexer->getCurrentToken()->getType() == tokenType) {
 	  lexer->nextToken();
@@ -53,6 +62,11 @@ class Parser {
 	}
   }
 
+  /**
+   * @brief Выводит дерево
+   * @param currentNode узел с которого надо начать
+   * @param level уровень с которого начать
+   */
   void printRecursive(Node *currentNode, size_t level) {
 	using namespace std;
 	bool bAddNewline = true;
@@ -168,7 +182,7 @@ class Parser {
 	  case Node::nodeType::FUNCTION:cout << "FUNCTION";
 		break;
 	  case Node::nodeType::FUNCCALL:cout << "FUNC_CALL";
-    break;
+		break;
 	}
 	if (currentNode->value != " ")
 	  cout << "(" << currentNode->value << ")";
@@ -943,7 +957,9 @@ class Parser {
 	  node->list.push_back(tmp);
 	  expect(Token::tokenType::Semicolon);
 	  while (node->list.back() != nullptr) {
-		node->list.push_back(VarDecl());
+		tmp = VarDecl();
+		if (tmp == nullptr) return node;
+		node->list.push_back(tmp);
 		if (node->list.back() != nullptr)
 		  expect(Token::tokenType::Semicolon);
 	  }

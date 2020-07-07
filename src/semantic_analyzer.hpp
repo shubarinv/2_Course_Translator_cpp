@@ -13,13 +13,44 @@
 class SemanticAnalyzer {
  private:
   Node *tree{};
+ public:
+  [[nodiscard]] Node *getTree() const {
+	return tree;
+  }
+
+ private:
   Parser *parser{};
   VariableTable *variables{};
+ public:
+  /**
+   * @brief Возвращает объявленные переменные
+   * @return
+   */
+  [[nodiscard]] VariableTable *getVariables() const {
+	return variables;
+  }
+
+  /**
+   * @brief Возвращает объявленные глобальные переменные
+   * @return
+   */
+  [[nodiscard]] VariableTable *getGlobalVariables() const {
+	return globalVariables;
+  }
+  /**
+   * @brief возвращает известные функции
+   * @return
+   */
+  [[nodiscard]]FunctionTable *getFunctions() const {
+	return functions;
+  }
+
+ private:
   VariableTable *globalVariables{};
   FunctionTable *functions{};
  public:
-  explicit SemanticAnalyzer(const std::string &_filename) {
-	parser = new Parser(_filename);
+  explicit SemanticAnalyzer(const std::string &_filename, Parser *_parser) {
+	parser = _parser;
 	parser->parse();
 	tree = parser->GetTree();
 	variables = new VariableTable();
@@ -29,6 +60,12 @@ class SemanticAnalyzer {
   }
 
  private:
+  /**
+   * @brief определяет тип переменной
+   * @param currentNode
+   * @param func функция в которой переменная находится
+   * @return
+   */
   Variable::varType getVariableType(Node *currentNode, Function *func = nullptr) {
 	if (func != nullptr) {
 	  if (func->variables.isVarDefined(currentNode->value)) {
@@ -49,6 +86,9 @@ class SemanticAnalyzer {
 	return Variable::varType::UNKNOWN;
   }
 
+  /**
+   * @brief проверяет код
+   */
   void analyze() {
 	std::cout << "=======================\n SemanticAnalyzer \n===========" << std::endl;
 	lookForVariableDeclaration();
@@ -85,6 +125,10 @@ class SemanticAnalyzer {
 
   }
 
+  /**
+   * @brief ищет функции и переменные
+   * @param currentNode
+   */
   void lookForFunctionsAndProcedures(Node *currentNode) {
 	// если текущая нода ноль, то делать с ней ничего нельзя
 	// так что выходим из функции
@@ -127,6 +171,12 @@ class SemanticAnalyzer {
 	}
   }
 
+  /**
+   * @brief объявлеят переменные
+   * @param currentNode
+   * @param parentFunction
+   * @param bGlobal
+   */
   void declareVariables(Node *currentNode, Function *parentFunction = nullptr, bool bGlobal = false) {
 	// если текущая нода ноль, то делать с ней ничего нельзя
 	// так что выходим из функции
@@ -161,6 +211,11 @@ class SemanticAnalyzer {
 	}
   }
 
+  /**
+   * @brief проверяет была ли переменная объявлена перед использованием
+   * @param currentNode
+   * @param func
+   */
   void checkVariableDeclaration(Node *currentNode, Function *func = nullptr) {
 	if (currentNode == nullptr)
 	  return;
@@ -187,25 +242,16 @@ class SemanticAnalyzer {
 	  checkVariableDeclaration(node, func);
 	}
   }
-
+/**
+ * @brief проверят совместимы ли типы
+ * @param currentNode
+ * @param func
+ */
   void checkTypeMismatch(Node *currentNode, Function *func = nullptr) {
 	if (currentNode == nullptr)return;
 
-	if (currentNode->type == Node::nodeType::BINOP && currentNode->op2->type != Node::nodeType::BINOP) {
-	  if (!Variable::areTypesCompatible(getVariableType(currentNode->op1, func),
-										getVariableType(currentNode->op2, func))) {
-		throw TypeMismatchError(Variable::varTypeToString(getVariableType(currentNode->op1, func)),
-								Variable::varTypeToString(getVariableType(currentNode->op2, func)));
+	compareVariableTypes(currentNode, func);
 
-	  }
-	} else if (currentNode->type == Node::nodeType::BINOP && currentNode->op2->type == Node::nodeType::BINOP) {
-	  if (!Variable::areTypesCompatible(getVariableType(currentNode->op1, func),
-										getVariableType(currentNode->op2->op1, func))) {
-		throw TypeMismatchError(Variable::varTypeToString(getVariableType(currentNode->op1, func)),
-								Variable::varTypeToString(getVariableType(currentNode->op2->op1, func)));
-
-	  }
-	}
 	checkTypeMismatch(currentNode->op1, func);
 	checkTypeMismatch(currentNode->op2, func);
 	checkTypeMismatch(currentNode->op3, func);
@@ -214,6 +260,52 @@ class SemanticAnalyzer {
 	  checkTypeMismatch(node, func);
 	}
   }
+
+  /**
+   * @brief сравнимает типы переменных с эталоном
+   * @param currentNode
+   * @param func
+   * @param ref
+   */
+  void compareVariableTypes(Node *currentNode, Function *func = nullptr, Variable::varType *ref = nullptr) {
+	if (ref == nullptr) {
+	  if (currentNode->type == Node::nodeType::BINOP) {
+		if (currentNode->op1->type != Node::nodeType::BINOP &&
+			currentNode->op2->type != Node::nodeType::BINOP) {
+		  if (!Variable::areTypesCompatible(getVariableType(currentNode->op1, func),
+											getVariableType(currentNode->op2, func))) {
+			throw TypeMismatchError(Variable::varTypeToString(getVariableType(currentNode->op1, func)),
+									Variable::varTypeToString(getVariableType(currentNode->op2, func)));
+		  }
+		} else if (currentNode->op1->type == Node::nodeType::BINOP) {
+		  if (currentNode->op2->type != Node::nodeType::BINOP) {
+			auto tmpRef = getVariableType(currentNode->op2, func);
+			compareVariableTypes(currentNode->op1, func, &tmpRef);
+		  } else { compareVariableTypes(currentNode->op1, func); }
+		} else if (currentNode->op2->type == Node::nodeType::BINOP) {
+		  if (currentNode->op1->type != Node::nodeType::BINOP) {
+			auto tmpRef = getVariableType(currentNode->op1, func);
+			compareVariableTypes(currentNode->op2, func, &tmpRef);
+		  } else {
+			compareVariableTypes(currentNode->op2, func);
+		  }
+		}
+	  }
+	} else {
+	  if (currentNode->type == Node::nodeType::BINOP) {
+		compareVariableTypes(currentNode->op1, func, ref);
+		compareVariableTypes(currentNode->op2, func, ref);
+	  } else {
+		if (!Variable::areTypesCompatible(*ref, getVariableType(currentNode, func))) {
+		  throw TypeMismatchError(Variable::varTypeToString(*ref), Variable::varTypeToString(getVariableType(currentNode, func)));
+		}
+	  }
+	}
+  }
+  /**
+   * @brief проверяет правильность вызова функций
+   * @param currentNode
+   */
   void checkFunctionCalls(Node *currentNode) {
 	if (currentNode == nullptr)
 	  return;
@@ -224,12 +316,15 @@ class SemanticAnalyzer {
 	  for (auto &param:currentNode->op1->list) {
 		if (i == func->getParams().size()) {
 		  if (param->type == Node::nodeType::BINOP) {
-			if (!Variable::areTypesCompatible(getVariableType(param->op1), func->getReturnVar()->getType())) {
-			  throw UnexpectedParameterType(func->getName(), Variable::varTypeToString(func->getReturnVar()->getType()),
+			if (!Variable::areTypesCompatible(getVariableType(param->op1),
+											  func->getReturnVar()->getType())) {
+			  throw UnexpectedParameterType(func->getName(),
+											Variable::varTypeToString(func->getReturnVar()->getType()),
 											Variable::varTypeToString(getVariableType(param->op1)));
 			}
 		  } else if (!Variable::areTypesCompatible(getVariableType(param), func->getReturnVar()->getType())) {
-			throw UnexpectedParameterType(func->getName(), Variable::varTypeToString(func->getReturnVar()->getType()),
+			throw UnexpectedParameterType(func->getName(),
+										  Variable::varTypeToString(func->getReturnVar()->getType()),
 										  Variable::varTypeToString(getVariableType(param)));
 		  }
 		  i++;
@@ -239,11 +334,13 @@ class SemanticAnalyzer {
 		  continue;
 		} else if (param->type == Node::nodeType::BINOP) {
 		  if (!Variable::areTypesCompatible(func->getParams()[i]->getType(), getVariableType(param->op1))) {
-			throw UnexpectedParameterType(func->getName(), Variable::varTypeToString(func->getParams()[i]->getType()),
+			throw UnexpectedParameterType(func->getName(),
+										  Variable::varTypeToString(func->getParams()[i]->getType()),
 										  Variable::varTypeToString(getVariableType(param->op1)));
 		  }
 		} else if (!Variable::areTypesCompatible(func->getParams()[i]->getType(), getVariableType(param))) {
-		  throw UnexpectedParameterType(func->getName(), Variable::varTypeToString(func->getParams()[i]->getType()),
+		  throw UnexpectedParameterType(func->getName(),
+										Variable::varTypeToString(func->getParams()[i]->getType()),
 										Variable::varTypeToString(getVariableType(param)));
 		}
 		i++;

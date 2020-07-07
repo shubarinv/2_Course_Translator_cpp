@@ -10,7 +10,7 @@ IF (WIN32)
     set(CMAKE_EXE_LINKER_FLAGS "-static -lstdc++ -lpthread")
 ENDIF ()
 
-add_library(${BINARY}_lib STATIC ${SOURCES} Token.hpp Node.hpp StackTraceGenerator.hpp variable.hpp variable_table.hpp function.hpp function_table.hpp)
+add_library(${BINARY}_lib STATIC ${SOURCES} Token.hpp Node.hpp StackTraceGenerator.hpp variable.hpp variable_table.hpp function.hpp function_table.hpp translator.hpp)
 
 if (Boost_FOUND)
     target_link_libraries(${BINARY}_run ${Boost_LIBRARIES})

@@ -12,6 +12,10 @@ class VariableTable {
  public:
   ~VariableTable() { variables.clear(); }
 
+  /**
+   * @brief позволяет добавить переменую
+   * @param var
+   */
   void addVar(Variable *var) {
 	if (!isVarDefined(var->getName()))
 	  variables.push_back(var);
@@ -19,6 +23,11 @@ class VariableTable {
 	  throw NotImplementedException("var redef");
   }
 
+  /**
+   * @brief возвращает тип переменной
+   * @param _val
+   * @return
+   */
   Variable::varType getVarType(const std::string &_val) {
 	// since what semanticAnalyser passes here might not be a varName we need to check and determine type of what was passed
 	if (Token::determineTokenType(_val) != Token::tokenType::Id) {
@@ -27,6 +36,9 @@ class VariableTable {
 	return getVarByName(_val)->getType();
   }
 
+  /**
+   * @brief возвращает переменную по имени
+   */
   Variable *getVarByName(const std::string &_name) {
 	for (auto &var : variables) {
 	  if (var->getName() == _name) {
@@ -36,6 +48,11 @@ class VariableTable {
 	throw VariableNotDefinedError(_name);
   }
 
+  /**
+   * @brief проверяет определеная ли переменная
+   * @param _name
+   * @return
+   */
   bool isVarDefined(const std::string &_name) {
 	for (auto &var : variables) {
 	  if (var->getName() == _name) {
@@ -45,6 +62,9 @@ class VariableTable {
 	return false;
   }
 
+  /**
+   * @brief выводит список переменных в консоль
+   */
   void printToConsole() {
 	for (auto &var : variables) {
 	  if (var->getIsParam())
