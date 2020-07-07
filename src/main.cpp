@@ -1,7 +1,7 @@
 #include "Parser.h"
 
 #include "semantic_analyzer.hpp"
-#include "translator_new.hpp"
+#include "translator.hpp"
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <stdexcept>    // std::logic_error
@@ -27,7 +27,7 @@ int main() {
   }
   auto *parser = new Parser(filename);
   auto *semanticAnalyzer = new SemanticAnalyzer(filename, parser);
-  auto *translator = new Translator_new(semanticAnalyzer);
+  auto *translator = new Translator(semanticAnalyzer);
 
   std::cout << "=====- Assembler output -=====" << std::endl;
   std::system("nasm -fmacho64 -g -F dwarf output.asm && ld output.o -lSystem && ./a.out");
