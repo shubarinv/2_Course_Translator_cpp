@@ -24,6 +24,7 @@ class Translator {
   int inputFmtsNum = 0;
   int outputFmtsNum = 0;
   int msgNum = 0;
+  int loopsNum = 0;
  public:
   explicit Translator(SemanticAnalyzer *_semanticAnalyzer) {
 	if (_semanticAnalyzer == nullptr) {
@@ -109,7 +110,22 @@ class Translator {
 
 	  inputFmtsNum++;
 	}
-	if (currentNode->type == Node::nodeType::FOR_LOOP) { throw NotImplementedException(); }
+	if (currentNode->type == Node::nodeType::FOR_LOOP) {
+	  asmCode += "mov rcx," + writeValue(currentNode->op2) + "\n";
+	  asmCode += "mov " + writeValue(currentNode->op1) + ",rcx" + "\n";
+	  asmCode += "loop" + std::to_string(loopsNum) + ":\n";
+	  asmCode += "mov r12,rcx\n";
+	  for (auto &node : currentNode->list) {
+		goThroughTree(node);
+	  }
+	  asmCode += "mov rcx,r12\n";
+	  asmCode += "inc rcx\n";
+	  asmCode += "mov " + writeValue(currentNode->op1) + ",rcx" + "\n";
+	  asmCode += "cmp rcx," + writeValue(currentNode->op4) + "\n";
+	  asmCode += "jle loop" + std::to_string(loopsNum) + "\n";
+	  loopsNum++;
+	  return;
+	}
 	if (currentNode->type == Node::nodeType::PROCEDURE) { throw NotImplementedException(); }
 	if (currentNode->type == Node::nodeType::FUNCTION) { throw NotImplementedException(); }
 	if (currentNode->type == Node::nodeType::IF) { throw NotImplementedException(); }
