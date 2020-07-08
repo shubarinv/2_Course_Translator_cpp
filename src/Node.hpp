@@ -66,6 +66,7 @@ class Node {
   Node *op2;
   Node *op3;
   Node *op4;
+  int priority = 1000;
   std::list<Node *> list;
 
   explicit Node(nodeType _type, std::string _value = " ", Node *_op1 = nullptr, Node *_op2 = nullptr,

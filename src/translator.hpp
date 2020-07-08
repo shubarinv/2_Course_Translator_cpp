@@ -95,7 +95,9 @@ class Translator {
 		asmCode += "mov rax,0\n";
 		asmCode += "call _printf\n";
 		asmCode += "pop rbp\n";
-	  } else {}
+	  } else {
+		// Todo add support for writeln(a,b);
+	  }
 	  outputFmtsNum++;
 	  msgNum++;
 	}
@@ -207,9 +209,6 @@ class Translator {
 			else *prevStr += "%c";
 			return tmp;
 		  case Variable::WIDECHAR:
-			if (prevStr == nullptr)tmp = "%s";
-			else *prevStr += "%s";
-			return tmp;
 		  case Variable::STRING:
 			if (prevStr == nullptr)tmp = "%s";
 			else *prevStr += "%s";
@@ -226,8 +225,14 @@ class Translator {
 		return tmp;
 	  }
 	} else {
-	  for (auto &param : currentNode->op1->list) {
-		tmp += printfFormatGenerator(param) + " ";
+	  if (!currentNode->list.empty() && currentNode->op1 == nullptr) {
+		for (auto &param : currentNode->list) {
+		  tmp += printfFormatGenerator(param) + " ";
+		}
+	  } else {
+		for (auto &param : currentNode->op1->list) {
+		  tmp += printfFormatGenerator(param) + " ";
+		}
 	  }
 	}
 	return tmp;
@@ -265,7 +270,7 @@ class Translator {
 	  if (currentNode->op2->type != Node::nodeType::BINOP) {
 		asmCode += writeValue(currentNode->op2) + "\n";
 	  } else {
-		writeBinOPs(currentNode->op2);
+		writeBinOPs_test(currentNode->op2);
 	  }
 	  asmCode += "mov " + writeValue(currentNode->op1) + " ,r8\n";
 	} else if (currentNode->value == ">" || currentNode->value == "<" || currentNode->value == ">=" || currentNode->value == "<="
@@ -273,14 +278,14 @@ class Translator {
 	  asmCode += "mov r8,";
 	  if (currentNode->op1->type != Node::nodeType::BINOP) {
 		asmCode += writeValue(currentNode->op1) + "\n";
-	  } else { writeBinOPs(currentNode->op1); }
+	  } else { writeBinOPs_test(currentNode->op1); }
 	  asmCode += "mov r9,";
 	  if (currentNode->op2->type != Node::nodeType::BINOP) {
 		asmCode += writeValue(currentNode->op2) + "\n";
-	  } else { writeBinOPs(currentNode->op2); }
+	  } else { writeBinOPs_test(currentNode->op2); }
 	  asmCode += "cmp r8,r9\n";
 	} else
-	  writeBinOPs(currentNode);
+	  writeBinOPs_test(currentNode);
   }
   void writeBinOPs(Node *currentNode) {
 	if (currentNode->op1 == nullptr || currentNode->op2 == nullptr) {
@@ -291,7 +296,9 @@ class Translator {
 
 	if (currentNode->op1->type == Node::nodeType::BINOP) {
 	  writeBinOPs(currentNode->op1);
-	} else { asmCode += writeValue(currentNode->op1) + "\n"; }
+	} else {
+	  asmCode += writeValue(currentNode->op1) + "\n";
+	}
 	if (currentNode->value == "+") {
 	  asmCode += "add r8, ";
 	}
@@ -308,9 +315,56 @@ class Translator {
 	  writeBinOPs(currentNode->op2);
 	} else if (currentNode->op2->type == Node::nodeType::FACTOR) {
 	  writeBinOPs(currentNode->op2->op2);
-	} else { asmCode += writeValue(currentNode->op2) + "\n"; }
+	} else {
+	  asmCode += writeValue(currentNode->op2) + "\n";
+	}
 	if (currentNode->value == "*") { asmCode += "imul r8,r9\n"; }
 	if (currentNode->value == "/") { asmCode += "\nxor rdx,rdx\nmov rax,r8\nidiv r9\nmov r8,rax\n"; }
+  }
+  void writeBinOPs_test(Node *currentNode, std::string writeAfterOP1 = "", std::string writeAfterOP2 = "") {
+	if (currentNode->op1 == nullptr || currentNode->op2 == nullptr) {
+	  asmCode += "\n";
+	  return;
+	}
+	//if(currentNode->value==">"||currentNode->value=="<"||currentNode->value==">="||currentNode->value=="<=")return;
+
+	if (currentNode->op1->type == Node::nodeType::BINOP) {
+	  writeBinOPs_test(currentNode->op1);
+	} else {
+	  asmCode += writeValue(currentNode->op1) + "\n";
+	  asmCode += writeAfterOP1;
+	}
+	if (currentNode->value == "+") {
+	  if (currentNode->op2->value == "*" || currentNode->op2->value == "/") {
+		asmCode += "mov r10,";
+		writeBinOPs(currentNode->op2);
+		asmCode += "add r8,r10\n";
+		return;
+	  } else {
+		asmCode += "add r8, ";
+	  }
+	}
+	if (currentNode->value == "-") {
+	  asmCode += "sub r8, ";
+	}
+	if (currentNode->value == "*") {
+	  asmCode += "mov r9, ";
+	  writeAfterOP1 = "imul r8,r9\n";
+	  writeAfterOP2 = writeAfterOP1;
+	}
+	if (currentNode->value == "/") {
+	  asmCode += "mov r9, ";
+	  writeAfterOP1 = "xor rdx,rdx\nmov rax,r8\nidiv r9\nmov r8,rax\n";
+	  writeAfterOP2 = writeAfterOP1;
+	}
+	if (currentNode->op2->type == Node::nodeType::BINOP) {
+	  writeBinOPs_test(currentNode->op2, writeAfterOP1, writeAfterOP2);
+	} else if (currentNode->op2->type == Node::nodeType::FACTOR) {
+	  writeBinOPs_test(currentNode->op2->op2, writeAfterOP1, writeAfterOP2);
+	} else {
+	  asmCode += writeValue(currentNode->op2) + "\n";
+	  asmCode += writeAfterOP2;
+	}
   }
   /**
  * @brief This func will put val in [] if it is a var, will paste val w\o
