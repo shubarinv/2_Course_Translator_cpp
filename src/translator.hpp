@@ -118,7 +118,7 @@ class Translator {
 	  if (asmHeader.empty()) {
 		asmHeader += "extern\t_printf,_scanf\t\t; the C function, to be called\n";
 	  }
-	  asmData += "fmt" + std::to_string(outputFmtsNum) + " db \"" + printfFormatGenerator(currentNode->op1) + "\",10,0\n";
+	  asmData += "fmt" + std::to_string(outputFmtsNum) + " db \"" + printfFormatGenerator(currentNode->op1) + "\",0\n";
 	  if (currentNode->op1->type != Node::nodeType::EXPR) {
 		asmCode += "push rbp\n";
 		asmCode += "mov rdi,fmt" + std::to_string(outputFmtsNum) + "\n";
@@ -162,6 +162,8 @@ class Translator {
 	  asmCode += "mov " + writeValue(currentNode->op1) + ",rcx" + "\n";
 	  asmCode += "loop" + std::to_string(loopsNum) + ":\n";
 	  asmCode += "mov r12,rcx\n";
+	  int thisLoopNum = loopsNum;
+	  loopsNum++;
 	  for (auto &node : currentNode->list) {
 		goThroughTree(node);
 	  }
@@ -169,7 +171,7 @@ class Translator {
 	  asmCode += "inc rcx\n";
 	  asmCode += "mov " + writeValue(currentNode->op1) + ",rcx" + "\n";
 	  asmCode += "cmp rcx," + writeValue(currentNode->op4) + "\n";
-	  asmCode += "jle loop" + std::to_string(loopsNum) + "\n";
+	  asmCode += "jle loop" + std::to_string(thisLoopNum) + "\n";
 	  loopsNum++;
 	  return;
 	}
