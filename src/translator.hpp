@@ -42,6 +42,32 @@ class Translator {
   void writeHeader() {
 
   }
+
+  /**
+ * @brief определяет тип переменной
+ * @param currentNode
+ * @param func функция в которой переменная находится
+ * @return
+ */
+  Variable::varType getVariableType(Node *currentNode, Function *func = nullptr) {
+	if (func != nullptr) {
+	  if (func->variables.isVarDefined(currentNode->value)) {
+		return func->variables.getVarType(currentNode->value);
+	  }
+	  if (func->getReturnVar()->getName() == currentNode->value) {
+		return func->getReturnVar()->getType();
+	  }
+	} else {
+	  if (localVariables->isVarDefined(currentNode->value)) { return localVariables->getVarType(currentNode->value); }
+	}
+	if (globalVariables->isVarDefined(currentNode->value)) {
+	  return globalVariables->getVarType(currentNode->value);
+	}
+	if (Token::determineTokenType(currentNode->value) != Token::tokenType::Id) {
+	  return Variable::determineVarType(Token::typeToString(Token::determineTokenType(currentNode->value)));
+	}
+	return Variable::varType::UNKNOWN;
+  }
   void translate() {
 	writeHeader();
 	writeVariables();
@@ -373,6 +399,9 @@ class Translator {
  */
   std::string writeValue(Node *currentNode) {
 	if (currentNode->type == Node::nodeType::VAR) {
+	  if (getVariableType(currentNode) == Variable::varType::REAL || getVariableType(currentNode) == Variable::varType::DOUBLE) {
+		throw NotImplementedException("Sorry fractions are not supported in this version :(\n");
+	  }
 	  return "[rel " + currentNode->value + "]";
 	} else if (currentNode->type == Node::nodeType::CONSTANT || currentNode->type == Node::nodeType::STR) {
 	  return currentNode->value;
