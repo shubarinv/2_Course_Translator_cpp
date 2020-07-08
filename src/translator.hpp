@@ -42,6 +42,44 @@ class Translator {
   void writeHeader() {
 
   }
+
+  /*
+ * Erase all Occurrences of given substring from main string.
+ */
+  static void eraseAllSubStr(std::string &mainStr, const std::string &toErase) {
+	size_t pos = std::string::npos;
+	// Search for the substring in string in a loop untill nothing is found
+	while ((pos = mainStr.find(toErase)) != std::string::npos) {
+	  // If found then erase it from string
+	  mainStr.erase(pos, toErase.length());
+	}
+  }
+
+  /**
+ * @brief определяет тип переменной
+ * @param currentNode
+ * @param func функция в которой переменная находится
+ * @return
+ */
+  Variable::varType getVariableType(Node *currentNode, Function *func = nullptr) {
+	if (func != nullptr) {
+	  if (func->variables.isVarDefined(currentNode->value)) {
+		return func->variables.getVarType(currentNode->value);
+	  }
+	  if (func->getReturnVar()->getName() == currentNode->value) {
+		return func->getReturnVar()->getType();
+	  }
+	} else {
+	  if (localVariables->isVarDefined(currentNode->value)) { return localVariables->getVarType(currentNode->value); }
+	}
+	if (globalVariables->isVarDefined(currentNode->value)) {
+	  return globalVariables->getVarType(currentNode->value);
+	}
+	if (Token::determineTokenType(currentNode->value) != Token::tokenType::Id) {
+	  return Variable::determineVarType(Token::typeToString(Token::determineTokenType(currentNode->value)));
+	}
+	return Variable::varType::UNKNOWN;
+  }
   void translate() {
 	writeHeader();
 	writeVariables();
@@ -80,7 +118,7 @@ class Translator {
 	  if (asmHeader.empty()) {
 		asmHeader += "extern\t_printf,_scanf\t\t; the C function, to be called\n";
 	  }
-	  asmData += "fmt" + std::to_string(outputFmtsNum) + " db \"" + printfFormatGenerator(currentNode->op1) + "\",10,0\n";
+	  asmData += "fmt" + std::to_string(outputFmtsNum) + " db \"" + printfFormatGenerator(currentNode->op1) + "\",0\n";
 	  if (currentNode->op1->type != Node::nodeType::EXPR) {
 		asmCode += "push rbp\n";
 		asmCode += "mov rdi,fmt" + std::to_string(outputFmtsNum) + "\n";
@@ -95,7 +133,13 @@ class Translator {
 		asmCode += "mov rax,0\n";
 		asmCode += "call _printf\n";
 		asmCode += "pop rbp\n";
-	  } else {}
+	  } else {
+		for (auto &node : currentNode->op1->list) {
+		  outputFmtsNum++;
+		  Node *tmp = new Node(currentNode->type, currentNode->value, node);
+		  goThroughTree(tmp);
+		}
+	  }
 	  outputFmtsNum++;
 	  msgNum++;
 	}
@@ -118,6 +162,8 @@ class Translator {
 	  asmCode += "mov " + writeValue(currentNode->op1) + ",rcx" + "\n";
 	  asmCode += "loop" + std::to_string(loopsNum) + ":\n";
 	  asmCode += "mov r12,rcx\n";
+	  int thisLoopNum = loopsNum;
+	  loopsNum++;
 	  for (auto &node : currentNode->list) {
 		goThroughTree(node);
 	  }
@@ -125,7 +171,7 @@ class Translator {
 	  asmCode += "inc rcx\n";
 	  asmCode += "mov " + writeValue(currentNode->op1) + ",rcx" + "\n";
 	  asmCode += "cmp rcx," + writeValue(currentNode->op4) + "\n";
-	  asmCode += "jle loop" + std::to_string(loopsNum) + "\n";
+	  asmCode += "jle loop" + std::to_string(thisLoopNum) + "\n";
 	  loopsNum++;
 	  return;
 	}
@@ -207,9 +253,6 @@ class Translator {
 			else *prevStr += "%c";
 			return tmp;
 		  case Variable::WIDECHAR:
-			if (prevStr == nullptr)tmp = "%s";
-			else *prevStr += "%s";
-			return tmp;
 		  case Variable::STRING:
 			if (prevStr == nullptr)tmp = "%s";
 			else *prevStr += "%s";
@@ -226,8 +269,14 @@ class Translator {
 		return tmp;
 	  }
 	} else {
-	  for (auto &param : currentNode->op1->list) {
-		tmp += printfFormatGenerator(param) + " ";
+	  if (!currentNode->list.empty() && currentNode->op1 == nullptr) {
+		for (auto &param : currentNode->list) {
+		  tmp += printfFormatGenerator(param) + " ";
+		}
+	  } else {
+		for (auto &param : currentNode->op1->list) {
+		  tmp += printfFormatGenerator(param) + " ";
+		}
 	  }
 	}
 	return tmp;
@@ -254,6 +303,7 @@ class Translator {
 		case Variable::WIDECHAR:asmBSS += "RESD\t 1";
 		  break;
 		case Variable::STRING:asmBSS += "RESB\t 1; might need to reallocate later";
+		  break;
 		case Variable::UNKNOWN:throw std::runtime_error("Got var of unknown type");
 	  }
 	  asmBSS += "\n";
@@ -265,22 +315,27 @@ class Translator {
 	  if (currentNode->op2->type != Node::nodeType::BINOP) {
 		asmCode += writeValue(currentNode->op2) + "\n";
 	  } else {
-		writeBinOPs(currentNode->op2);
+		writeBinOPs_test(currentNode->op2);
 	  }
-	  asmCode += "mov " + writeValue(currentNode->op1) + " ,r8\n";
+	  if (currentNode->op2->type != Node::nodeType::STR)
+		asmCode += "mov " + writeValue(currentNode->op1) + " ,r8\n";
+	  else {
+		asmData += currentNode->op1->value + " db " + currentNode->op2->value + ",0xa\n";
+		eraseAllSubStr(asmBSS, currentNode->op1->value + ":\tRESB\t 1; might need to reallocate later\n");
+	  }
 	} else if (currentNode->value == ">" || currentNode->value == "<" || currentNode->value == ">=" || currentNode->value == "<="
 		|| currentNode->value == "=") {
 	  asmCode += "mov r8,";
 	  if (currentNode->op1->type != Node::nodeType::BINOP) {
 		asmCode += writeValue(currentNode->op1) + "\n";
-	  } else { writeBinOPs(currentNode->op1); }
+	  } else { writeBinOPs_test(currentNode->op1); }
 	  asmCode += "mov r9,";
 	  if (currentNode->op2->type != Node::nodeType::BINOP) {
 		asmCode += writeValue(currentNode->op2) + "\n";
-	  } else { writeBinOPs(currentNode->op2); }
+	  } else { writeBinOPs_test(currentNode->op2); }
 	  asmCode += "cmp r8,r9\n";
 	} else
-	  writeBinOPs(currentNode);
+	  writeBinOPs_test(currentNode);
   }
   void writeBinOPs(Node *currentNode) {
 	if (currentNode->op1 == nullptr || currentNode->op2 == nullptr) {
@@ -291,7 +346,9 @@ class Translator {
 
 	if (currentNode->op1->type == Node::nodeType::BINOP) {
 	  writeBinOPs(currentNode->op1);
-	} else { asmCode += writeValue(currentNode->op1) + "\n"; }
+	} else {
+	  asmCode += writeValue(currentNode->op1) + "\n";
+	}
 	if (currentNode->value == "+") {
 	  asmCode += "add r8, ";
 	}
@@ -306,9 +363,58 @@ class Translator {
 	}
 	if (currentNode->op2->type == Node::nodeType::BINOP) {
 	  writeBinOPs(currentNode->op2);
-	} else { asmCode += writeValue(currentNode->op2) + "\n"; }
+	} else if (currentNode->op2->type == Node::nodeType::FACTOR) {
+	  writeBinOPs(currentNode->op2->op2);
+	} else {
+	  asmCode += writeValue(currentNode->op2) + "\n";
+	}
 	if (currentNode->value == "*") { asmCode += "imul r8,r9\n"; }
 	if (currentNode->value == "/") { asmCode += "\nxor rdx,rdx\nmov rax,r8\nidiv r9\nmov r8,rax\n"; }
+  }
+  void writeBinOPs_test(Node *currentNode, std::string writeAfterOP1 = "", std::string writeAfterOP2 = "") {
+	if (currentNode->op1 == nullptr || currentNode->op2 == nullptr) {
+	  asmCode += "\n";
+	  return;
+	}
+	//if(currentNode->value==">"||currentNode->value=="<"||currentNode->value==">="||currentNode->value=="<=")return;
+
+	if (currentNode->op1->type == Node::nodeType::BINOP) {
+	  writeBinOPs_test(currentNode->op1);
+	} else {
+	  asmCode += writeValue(currentNode->op1) + "\n";
+	  asmCode += writeAfterOP1;
+	}
+	if (currentNode->value == "+") {
+	  if (currentNode->op2->value == "*" || currentNode->op2->value == "/") {
+		asmCode += "mov r10,";
+		writeBinOPs(currentNode->op2);
+		asmCode += "add r8,r10\n";
+		return;
+	  } else {
+		asmCode += "add r8, ";
+	  }
+	}
+	if (currentNode->value == "-") {
+	  asmCode += "sub r8, ";
+	}
+	if (currentNode->value == "*") {
+	  asmCode += "mov r9, ";
+	  writeAfterOP1 = "imul r8,r9\n";
+	  writeAfterOP2 = writeAfterOP1;
+	}
+	if (currentNode->value == "/") {
+	  asmCode += "mov r9, ";
+	  writeAfterOP1 = "xor rdx,rdx\nmov rax,r8\nidiv r9\nmov r8,rax\n";
+	  writeAfterOP2 = writeAfterOP1;
+	}
+	if (currentNode->op2->type == Node::nodeType::BINOP) {
+	  writeBinOPs_test(currentNode->op2, writeAfterOP1, writeAfterOP2);
+	} else if (currentNode->op2->type == Node::nodeType::FACTOR) {
+	  writeBinOPs_test(currentNode->op2->op2, writeAfterOP1, writeAfterOP2);
+	} else {
+	  asmCode += writeValue(currentNode->op2) + "\n";
+	  asmCode += writeAfterOP2;
+	}
   }
   /**
  * @brief This func will put val in [] if it is a var, will paste val w\o
@@ -317,6 +423,9 @@ class Translator {
  */
   std::string writeValue(Node *currentNode) {
 	if (currentNode->type == Node::nodeType::VAR) {
+	  if (getVariableType(currentNode) == Variable::varType::REAL || getVariableType(currentNode) == Variable::varType::DOUBLE) {
+		throw NotImplementedException("Sorry fractions are not supported in this version :(\n");
+	  } else if (getVariableType(currentNode) == Variable::varType::STRING) return currentNode->value;
 	  return "[rel " + currentNode->value + "]";
 	} else if (currentNode->type == Node::nodeType::CONSTANT || currentNode->type == Node::nodeType::STR) {
 	  return currentNode->value;

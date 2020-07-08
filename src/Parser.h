@@ -33,6 +33,7 @@ class Parser {
 	tree = Goal();
 	printRecursive(tree, 0);
 	std::cout << "\n\n----PARSING DONE -----\n\n" << std::endl;
+	prioritize(tree);
   }
 
   /**
@@ -2082,6 +2083,79 @@ class Parser {
 	  lexer->nextToken();
 	}
 	return node;
+  }
+
+  void prioritize(Node *currentNode) {
+	if (currentNode == nullptr)return;
+
+	switch (currentNode->type) {
+	  case Node::nodeType::START:
+	  case Node::nodeType::EXPR:
+	  case Node::nodeType::STATEMENT:
+	  case Node::nodeType::IF:
+	  case Node::nodeType::ELSE:
+	  case Node::nodeType::VAR:
+	  case Node::nodeType::NODE:
+	  case Node::nodeType::CONSTANT: break;
+	  case Node::nodeType::ADD:
+	  case Node::nodeType::SUB:currentNode->priority = 3;
+		break;
+	  case Node::nodeType::MUL:
+	  case Node::nodeType::DIV:currentNode->priority = 2;
+		break;
+	  case Node::nodeType::BINOP: {
+		if (currentNode->value == "+" || currentNode->value == "-") {
+		  currentNode->priority = 3;
+		} else if (currentNode->value == "*" || currentNode->value == "/") {
+		  currentNode->priority = 2;
+		}
+	  }
+		break;
+	  case Node::nodeType::STR:
+	  case Node::nodeType::FACTOR:break;
+	  case Node::nodeType::PAR:currentNode->priority = 1;
+		break;
+	  case Node::nodeType::TERM:
+	  case Node::nodeType::RESERVED:break;
+	  case Node::nodeType::COMP:currentNode->priority = 4;
+		break;
+	  case Node::nodeType::VARDECL:
+	  case Node::nodeType::VARTYPE:
+	  case Node::nodeType::DECL:
+	  case Node::nodeType::VARLIST:
+	  case Node::nodeType::DESIGNATOR:
+	  case Node::nodeType::PROG:
+	  case Node::nodeType::UNIT:
+	  case Node::nodeType::PROGRAM_BLOCK:
+	  case Node::nodeType::USES:
+	  case Node::nodeType::INTERFACE_SECTION:
+	  case Node::nodeType::BLOCK:
+	  case Node::nodeType::SECTION:
+	  case Node::nodeType::TYPE:
+	  case Node::nodeType::ARRAY_CONST:
+	  case Node::nodeType::SUBRANGE_EXPR:
+	  case Node::nodeType::INPUT:
+	  case Node::nodeType::OUTPUT:
+	  case Node::nodeType::FOR_LOOP:
+	  case Node::nodeType::STATEMENT_LIST:
+	  case Node::nodeType::VAR_SECTION:
+	  case Node::nodeType::WITH:
+	  case Node::nodeType::WHILE:
+	  case Node::nodeType::ARRAY_TYPE:
+	  case Node::nodeType::PROCEDURE:
+	  case Node::nodeType::PARAMS:
+	  case Node::nodeType::PARAM:
+	  case Node::nodeType::FUNCTION:
+	  case Node::nodeType::FUNCCALL:
+	  case Node::nodeType::AND:break;
+	}
+
+	prioritize(currentNode->op1);
+	prioritize(currentNode->op2);
+	prioritize(currentNode->op3);
+	prioritize(currentNode->op4);
+	for (auto &node : currentNode->list)
+	  prioritize(node);
   }
 
   ~Parser() { delete lexer; }
