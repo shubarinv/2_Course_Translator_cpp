@@ -111,6 +111,9 @@ class SemanticAnalyzer {
   }
 
   void lookForVariableDeclaration() {
+	if (tree->type == Node::nodeType::STATEMENT) {
+	  return;
+	}
 	if (tree->op1->type == Node::nodeType::VAR_SECTION &&
 		tree->op2->type == Node::nodeType::STATEMENT) {
 	  declareVariables(tree->op1); // registering local variables
