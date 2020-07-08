@@ -306,6 +306,8 @@ class Translator {
 	}
 	if (currentNode->op2->type == Node::nodeType::BINOP) {
 	  writeBinOPs(currentNode->op2);
+	} else if (currentNode->op2->type == Node::nodeType::FACTOR) {
+	  writeBinOPs(currentNode->op2->op2);
 	} else { asmCode += writeValue(currentNode->op2) + "\n"; }
 	if (currentNode->value == "*") { asmCode += "imul r8,r9\n"; }
 	if (currentNode->value == "/") { asmCode += "\nxor rdx,rdx\nmov rax,r8\nidiv r9\nmov r8,rax\n"; }

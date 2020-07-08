@@ -271,14 +271,14 @@ class SemanticAnalyzer {
 	if (ref == nullptr) {
 	  if (currentNode->type == Node::nodeType::BINOP) {
 		if (currentNode->op1->type != Node::nodeType::BINOP &&
-			currentNode->op2->type != Node::nodeType::BINOP) {
+			currentNode->op2->type != Node::nodeType::BINOP && currentNode->op2->type != Node::nodeType::FACTOR) {
 		  if (!Variable::areTypesCompatible(getVariableType(currentNode->op1, func),
 											getVariableType(currentNode->op2, func))) {
 			throw TypeMismatchError(Variable::varTypeToString(getVariableType(currentNode->op1, func)),
 									Variable::varTypeToString(getVariableType(currentNode->op2, func)));
 		  }
 		} else if (currentNode->op1->type == Node::nodeType::BINOP) {
-		  if (currentNode->op2->type != Node::nodeType::BINOP) {
+		  if (currentNode->op2->type != Node::nodeType::BINOP && currentNode->op2->type != Node::nodeType::FACTOR) {
 			auto tmpRef = getVariableType(currentNode->op2, func);
 			compareVariableTypes(currentNode->op1, func, &tmpRef);
 		  } else { compareVariableTypes(currentNode->op1, func); }
@@ -292,9 +292,12 @@ class SemanticAnalyzer {
 		}
 	  }
 	} else {
-	  if (currentNode->type == Node::nodeType::BINOP) {
+	  if (currentNode->type == Node::nodeType::BINOP && currentNode->op2->type != Node::nodeType::FACTOR) {
 		compareVariableTypes(currentNode->op1, func, ref);
 		compareVariableTypes(currentNode->op2, func, ref);
+	  } else if (currentNode->type == Node::nodeType::BINOP && currentNode->op2->type == Node::nodeType::FACTOR) {
+		compareVariableTypes(currentNode->op1, func, ref);
+		compareVariableTypes(currentNode->op2->op2, func, ref);
 	  } else {
 		if (!Variable::areTypesCompatible(*ref, getVariableType(currentNode, func))) {
 		  throw TypeMismatchError(Variable::varTypeToString(*ref), Variable::varTypeToString(getVariableType(currentNode, func)));
