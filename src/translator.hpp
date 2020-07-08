@@ -43,6 +43,18 @@ class Translator {
 
   }
 
+  /*
+ * Erase all Occurrences of given substring from main string.
+ */
+  static void eraseAllSubStr(std::string &mainStr, const std::string &toErase) {
+	size_t pos = std::string::npos;
+	// Search for the substring in string in a loop untill nothing is found
+	while ((pos = mainStr.find(toErase)) != std::string::npos) {
+	  // If found then erase it from string
+	  mainStr.erase(pos, toErase.length());
+	}
+  }
+
   /**
  * @brief определяет тип переменной
  * @param currentNode
@@ -285,6 +297,7 @@ class Translator {
 		case Variable::WIDECHAR:asmBSS += "RESD\t 1";
 		  break;
 		case Variable::STRING:asmBSS += "RESB\t 1; might need to reallocate later";
+		  break;
 		case Variable::UNKNOWN:throw std::runtime_error("Got var of unknown type");
 	  }
 	  asmBSS += "\n";
@@ -298,7 +311,12 @@ class Translator {
 	  } else {
 		writeBinOPs_test(currentNode->op2);
 	  }
-	  asmCode += "mov " + writeValue(currentNode->op1) + " ,r8\n";
+	  if (currentNode->op2->type != Node::nodeType::STR)
+		asmCode += "mov " + writeValue(currentNode->op1) + " ,r8\n";
+	  else {
+		asmData += currentNode->op1->value + " db " + currentNode->op2->value + ",0xa\n";
+		eraseAllSubStr(asmBSS, currentNode->op1->value + ":\tRESB\t 1; might need to reallocate later\n");
+	  }
 	} else if (currentNode->value == ">" || currentNode->value == "<" || currentNode->value == ">=" || currentNode->value == "<="
 		|| currentNode->value == "=") {
 	  asmCode += "mov r8,";
@@ -401,7 +419,7 @@ class Translator {
 	if (currentNode->type == Node::nodeType::VAR) {
 	  if (getVariableType(currentNode) == Variable::varType::REAL || getVariableType(currentNode) == Variable::varType::DOUBLE) {
 		throw NotImplementedException("Sorry fractions are not supported in this version :(\n");
-	  }
+	  } else if (getVariableType(currentNode) == Variable::varType::STRING) return currentNode->value;
 	  return "[rel " + currentNode->value + "]";
 	} else if (currentNode->type == Node::nodeType::CONSTANT || currentNode->type == Node::nodeType::STR) {
 	  return currentNode->value;
