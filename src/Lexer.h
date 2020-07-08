@@ -138,7 +138,11 @@ class Lexer {
 		  tokens.emplace_back(lexeme);
 		  lexeme = "";
 		}
-	  } else if (Token::determineTokenType(getString(program[i])) != Token::determineTokenType(getString(program[i + 1]))) {
+	  } else if (Token::determineTokenType(getString(program[i])) != Token::determineTokenType(getString(program[i + 1])) && !(
+		  Token::determineTokenType(getString(program[i])) == Token::tokenType::DOT && Token::determineTokenType(getString(program[i + 1]))
+			  == Token::tokenType::Num) && !(
+		  Token::determineTokenType(getString(program[i])) == Token::tokenType::Num && Token::determineTokenType(getString(program[i + 1]))
+			  == Token::tokenType::DOT)) {
 		lexeme += program[i];
 		if (Token::determineTokenType(lexeme + getString(program[i + 1])) == Token::tokenType::Id) { continue; }
 		if ((Token::determineTokenType(getString(program[i]) + getString(program[i + 1])) == Token::tokenType::Assignment ||
@@ -157,6 +161,7 @@ class Lexer {
 	  tokens.emplace_back(lexeme);
 	  lexeme = "";
 	}
+	printAllTokens();
 	cout << "\n\n---- TOKENIZATION DONE -----\n\n" << endl;
   }
 
