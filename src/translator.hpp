@@ -134,7 +134,11 @@ class Translator {
 		asmCode += "call _printf\n";
 		asmCode += "pop rbp\n";
 	  } else {
-		// Todo add support for writeln(a,b);
+		for (auto &node : currentNode->op1->list) {
+		  outputFmtsNum++;
+		  Node *tmp = new Node(currentNode->type, currentNode->value, node);
+		  goThroughTree(tmp);
+		}
 	  }
 	  outputFmtsNum++;
 	  msgNum++;
